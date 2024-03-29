@@ -1,0 +1,265 @@
+.profileDescription
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    align-items: last baseline;
+    padding: 10px;
+
+}
+
+.profileImage
+{
+    width: 75px;
+    height: 75px;
+    border: none;
+    cursor: pointer;
+    border-radius: 50%;
+    box-shadow: 0px 1px 16px 0px rgb(0, 0, 0);
+}
+
+
+.showProfile
+{
+    width: 600px;
+    height: 400px;
+    position: absolute;
+    left: 30%;
+    margin-top: 7%;
+    z-index: 999;
+    border: none;
+    border-radius: 5px;
+    background-color: black;
+    padding: 10px;
+    color: white;
+    font-family: 'ReadexPro';
+}
+
+.profileDescriptionHeader
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 200px;
+    padding-top: 20px;
+}
+
+.profile
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 25px;
+}
+
+.cancelButtons
+{
+    width: 100px;
+    height: 50px;
+    background-color: rgb(255, 255, 255);
+    color: black;
+    font-size: 16px;
+    font-weight: 600;
+    box-shadow: 0px 1px 16px 0px rgb(228, 226, 226);
+    border: none;
+    border-radius: 5px;
+}
+
+.projectName
+{
+    font-size: 18px;
+    font-family: 'ReadexPro';
+    font-weight: 600;
+    color: rgb(0, 0, 0);
+    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.108);
+}
+
+.functionButtons
+{
+
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    align-items: flex-start;
+  
+    margin-top: 25px;
+}
+
+.functionButton
+{
+    width: 100%;
+    height: 50px;
+    background-color: rgb(0, 0, 0);
+    color: rgba(255, 255, 255, 0.555);
+    border: none;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.465);
+    text-align: center;
+    font-family: 'ReadexPro';
+    font-weight: 400;
+    transition: 0.3s;
+}
+
+.clickedButton
+{
+    border: 1px solid cyan;
+    border-radius: 5px;
+    
+    box-shadow: 0px 1px 16px 0px cyan;
+}
+
+.headerBar
+{
+    background-color: black;
+    border: none;
+    width: 100%;
+    height: fit-content;
+    padding: 10px;
+    border-radius: 2px;
+
+    display: flex;
+    flex-direction: row-reverse;
+
+}
+
+
+
+.ShareButton
+{
+    width: fit-content;
+    padding: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    height: fit-content;
+    background-color: white;
+    color: black;
+    font-family: 'ReadexPro';
+    font-size: 14px;
+    font-weight: 400;
+    text-align: center;
+    border: none;
+    border-radius: 2px;
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0px 1px 8px 0px rgb(255, 255, 255);
+}
+
+.MainContainer
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    width: 100%;
+    max-width: 100%;
+}
+
+
+.mainBody
+{
+    width: 100%;
+    max-width: 100%;
+}
+
+.sidebarColumn
+{
+    border-right: 1px solid rgba(0, 0, 0, 0.471);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    width: 20%;
+    /* padding: 10px; */
+}
+
+
+
+.shareProject
+{
+    width: fit-content;
+    height: fit-content;
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    border-radius: 5px;
+    padding: 20px;
+    display: flex;
+    
+    flex-direction: column;
+    justify-content: left;
+    align-items: flex-start;
+    position: absolute;
+    left: 900px;
+    top: 50px;
+}
+
+.inviteHeading
+{
+    font-size: 24px;
+    font-weight: 400;
+    color: black;
+    font-family: 'ReadexPro';
+}
+
+.InviteEmailSection
+{
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    margin-top: 25px;
+}
+
+.InviteEmail
+{
+    width: 250px;
+    height: 50px;
+    font-family: 'ReadexPro';
+    padding-left: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.253);
+    border-radius: 5px;
+    margin-top: 10px;
+}
+
+.InviteEmail:focus
+{
+    outline: none;
+}
+
+.InviteEmailButton
+{
+    width: fit-content;
+    height: fit-content;
+    padding: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: black;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    text-align: center;
+    font-family: 'ReadexPro';
+}
+
+.selectAccessLevel
+{
+    font-family: 'ReadexPro';
+    background-color: black;
+    color: white;
+    transition: 0.1s;
+}
+
+
+.selectAccessLevel:hover
+{
+    color: green;
+    background-color: black;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.selectLevel:focus
+{
+    outline: none;
+}

@@ -1,0 +1,72 @@
+.mainBody
+{
+    padding: 10px;
+}
+
+.TaskHeading
+{
+    width: 500px;
+    height: 50px;
+    padding-left: 10px;
+    border: 0.5px solid rgba(0, 0, 0, 0.343);
+    border-radius: 5px;
+    margin-top: 5px;
+    font-family: 'ReadexPro';
+    transition: 0.3s;
+}
+
+.TaskHeading:focus
+{
+    outline: 1px solid rgb(110, 255, 110);
+}
+
+.TaskHeading::placeholder, .TaskDescription::placeholder
+{
+    color: rgba(0, 0, 0, 0.262);
+}
+
+.TaskDescription
+{
+    min-width: 1000px;
+    min-height: 200px;
+    margin-top: 5px;
+    max-width: 1000px;
+    max-height: 200px;
+    border: 1px solid rgba(0, 0, 0, 0.252);
+    border-radius: 5px;
+    translate: 0.3s;
+}
+
+.TaskDescription:focus
+{
+    outline: none;
+}
+
+.deadline{
+    border-style: outset;
+    border: 1px solid rgb(110, 255, 110);
+    font-family: 'ReadexPro';
+    border-radius: 5px;
+}
+
+.deadline:focus
+{
+    outline: none;
+}
+
+
+
+
+.attachments
+{
+    width: fit-content;
+    padding: 10px;
+    text-align: center;
+    font-family: 'ReadexPro';
+    border: 1px solid black;
+    border-radius: 5px;
+    font-size: 16px;
+    background-color: transparent;
+    margin-top: 5px;
+    font-weight: 400;
+}
