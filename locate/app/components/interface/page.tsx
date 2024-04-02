@@ -9,16 +9,15 @@ import { faShare } from '@fortawesome/free-solid-svg-icons';
 import TaskStatus from "./functionComponents/TaskStatus/TaskStatus";
 import CreateTask from "./functionComponents/CreateTask/CreateTask";
 import Members from "./functionComponents/Members/Members";
-// import inviteEmail from "../../../../External/invite";
+// import inviteViaEmail from "../../../../External/invite";
 import { FormControl, Select, MenuItem, InputLabel } from '@mui/material';
-
-
-
-
+// import mailgun from 'mailgun-js';
+import axios from 'axios';
+import Image from "next/image";
 
 export default function Interface() {
 
-   
+
 
     const [inviteEmailUser, setInviteEmailUser] = useState<string>('');
     const { projectId, projectName } = useGlobalProjectIdContext();
@@ -26,13 +25,29 @@ export default function Interface() {
     const [currentComponent, setCurrentComponenet] = useState<string>('Task status');
     const [openProfile, setOpenProfile] = useState<boolean>(false);
     const [showShare, setshowShare] = useState<boolean>(false);
+    const [successfulInvite, setSuccessfulInviteUser] = useState<boolean>(false);
     const changeShare = () => {
         setshowShare(!showShare);
+        // setSuccessfulInviteUser(!successfulInvite);
     }
 
     const OpenProfile = () => {
         setOpenProfile(true);
+
     }
+
+    // const inviteViaEmail = (url : string) => {
+    //     const DOMAIN = "sandbox99b2efb40c86476f9147da497070a2ff.mailgun.org";
+    //     const mg = mailgun({ apiKey: "ad8a488ee07e8f4a25b869a8d7727990-f68a26c9-2e0f8986", domain: DOMAIN });
+
+    //     const data = {
+    //         from: "Mailgun Sandbox <postmaster@sandbox99b2efb40c86476f9147da497070a2ff.mailgun.org>",
+    //         to: "agreharshit610@gmail.com",
+    //         subject: "Hello",
+    //         text: `You have been invited to join a project. Click on the link below to accept the invitation:\n\n${url}`
+    //     };
+
+    // }
 
     const [clickedButton, setClickedButton] = useState<string>('');
 
@@ -58,14 +73,33 @@ export default function Interface() {
         // let's see how to run a nodemailer service to send the mail
         // for the unique URL formation
         const unique_url = `http://localhost:3000/components/invitation?projectId=${encodeURIComponent(projectId)}&gmail=${encodeURIComponent(inviteEmailUser)}&accessLevel=${encodeURIComponent(accessLevel)}`;
-        // inviteEmail(inviteEmailUser ,unique_url);
+        // inviteViaEmail(unique_url);
+
+        const response = await axios.post('http://localhost:5000/sendInvite', {
+            'inviteTo': inviteEmailUser,
+            'UniqueUrl': unique_url
+        });
+
+        console.log(response);
+
+        if (response.status === 200) {
+            // invite sent successfully
+            setshowShare(!showShare);
+            setSuccessfulInviteUser(true);
+            // After 2 seconds, reset successfulInviteUser to false
+            setTimeout(() => {
+                setSuccessfulInviteUser(false);
+            }, 2000); // 2000 milliseconds = 2 seconds
+        }
+
+
     };
 
 
 
     return (
 
-        <main className={styles.MainContainer}>
+        <main className={`${styles.MainContainer} ${openProfile ? styles.blurBack : ''}`} style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)' }}>
 
 
             <div className={styles.sidebarColumn}>
@@ -155,6 +189,16 @@ export default function Interface() {
                 </div>
             }
 
+            {successfulInvite &&
+                <div className={`${successfulInvite} ? ${styles.successfullyInvited} : ' '`}>
+                    <img src="/invite.png" alt="Successful invite icon" />
+                    <p>Successfully invited</p>
+                </div>
+            }
+
+
+
         </main>
     )
 }
+

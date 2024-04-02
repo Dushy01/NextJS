@@ -33,6 +33,7 @@
     padding: 10px;
     color: white;
     font-family: 'ReadexPro';
+    
 }
 
 .profileDescriptionHeader
@@ -156,6 +157,7 @@
     justify-content: left;
     width: 100%;
     max-width: 100%;
+   
 }
 
 
@@ -263,3 +265,48 @@
 {
     outline: none;
 }
+
+
+.blurBack {
+    backdrop-filter: blur(5px); /* Adjust the blur strength as needed */
+    background-color: rgba(255, 255, 255, 0.5); /* Adjust the background color and opacity */
+  }
+
+
+
+  .successfullyInvited
+  {
+    display: flex;
+    flex-direction: row;
+    width: fit-content;
+    height: fit-content;
+    padding: 10px;
+    background-color: black;
+    border: 1px solid black;
+    border-radius: 5px;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    left: 80%;
+    top: -25%;
+    color: white;
+    float: right;
+    text-align: center;
+    font-family: 'ReadexPro';
+    animation: successfulInvite 1s 1;
+    z-index: 999;
+  }
+
+  @keyframes successfulInvite {
+    from  {
+       
+        top: -25%;
+        left: 80%;
+    }
+    to {
+        
+        top: 20%;
+        left: 80%;
+        display: flex;
+    }
+  }
