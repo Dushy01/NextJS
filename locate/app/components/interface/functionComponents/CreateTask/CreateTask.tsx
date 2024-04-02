@@ -10,6 +10,7 @@ import { collection, addDoc, updateDoc, getDoc, doc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useGlobalProjectIdContext } from '@/app/context/projectId';
 import { useGlobalUidContext } from '@/app/context/uid';
+import  Assignies  from './assignies';
 export default function CreateTask() {
 
     // const [selectedFiles, setSelectedFiles] = useState([]);
@@ -18,7 +19,7 @@ export default function CreateTask() {
     const { projectName, projectId } = useGlobalProjectIdContext();
     const { uid } = useGlobalUidContext();
     const [createTask, setCreateTask] = useState<boolean>(false);
-
+    const [showAssignOption, SetShowAssigniesOption] = useState<boolean>(false);
 
     const [heading, setHeading] = useState<string>('');
     const [description, setDescription] = useState<string>('');
@@ -164,7 +165,7 @@ export default function CreateTask() {
 
 
     const createTaskFunction = async () => {
-        
+
 
         // code to create the task 
         const task = {
@@ -189,36 +190,36 @@ export default function CreateTask() {
         // add the document id in the task list of the prject id 
         const updateListResult = await updateListInDocument('Projects', projectId, 'TaskIds', new_task_id);
         // update the task list
-        if (updateListResult) {setCreateTask(true);}
+        if (updateListResult) { setCreateTask(true); }
 
     }
 
     // update the list
-    const updateListInDocument = async (collectionName: string, documentId: string, listKey: string, newData : any) => {
+    const updateListInDocument = async (collectionName: string, documentId: string, listKey: string, newData: any) => {
         try {
             // Reference to the document
             const documentRef = doc(firestore, collectionName, documentId);
-    
+
             // Get the current data of the document
             const documentSnapshot = await getDoc(documentRef);
             if (!documentSnapshot.exists()) {
                 throw new Error('Document does not exist');
             }
-    
+
             // Get the current data object
             const currentData = documentSnapshot.data();
-    
+
             // Ensure that the listKey exists in the currentData object
             if (!currentData.hasOwnProperty(listKey) || !Array.isArray(currentData[listKey])) {
                 throw new Error(`Key "${listKey}" is not a list in the document`);
             }
-    
+
             // Add the newData to the list
             currentData[listKey].push(newData);
-    
+
             // Update the document with the modified data
             await updateDoc(documentRef, { [listKey]: currentData[listKey] });
-    
+
             console.log('List updated successfully');
             return true;
         } catch (error) {
@@ -269,16 +270,23 @@ export default function CreateTask() {
                         {attachedFiles && <button className={styles.attachments} >Attachments</button>}
                     </div>
                 </div>
+
+                {/* button to add assignies */}
+                <div className='d-flex flex-column m-10' style={{ marginLeft: 10 }}>
+                    <Typography fontFamily={'ReadexPro'} fontSize={20} color={'black'} fontWeight={'bold'}>
+                        Assignies
+                    </Typography>
+                    <button onClick={() => SetShowAssigniesOption(true)} className={styles.assignButton}>Assign</button>
+                </div>
             </div>
 
-            {/* showing the attached files
             {
-                showAttachedFiles && 
-                <div>
-                    
-                    
-                </div>
-            } */}
+                showAssignOption &&
+                // call a component to show up
+                <Assignies />
+            }
+
+
 
             <div className={styles.mainBody}>
                 <Typography fontFamily={'ReadexPro'} fontSize={20} color={'black'} fontWeight={'bold'}>
