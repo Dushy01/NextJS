@@ -7,14 +7,15 @@ import { useEffect, useState } from "react";
 import styles from './landing.module.css';
 import { firestore } from "@/app/firebase";
 import { useRouter } from "next/navigation";
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
 export default function landing() {
 
     interface RequestsMap {
         [key: string]: boolean;
     }
-    
+
 
     const router = useRouter();
 
@@ -28,7 +29,8 @@ export default function landing() {
     const [projectNameCreate, setProjectNameCreate] = useState<string>('');
     const [requestsMap, setRequestsMap] = useState<RequestsMap>({});
     const [showRequest, setShowRequest] = useState<boolean>(false);
-
+    const [isMember, setIsMember] = useState<boolean>(false);
+    const [projectMember, setProjectMember] = useState('');
 
     useEffect(() => {
         async function getProjects() {
@@ -44,6 +46,13 @@ export default function landing() {
                 querySnapshot.forEach((doc) => {
                     // Get the data of the document
                     const documentData = doc.data();
+                    // get the Member variable check up
+                    const Member = documentData.Member;
+                    console.log('Uid is the member of the project', Member);
+                    if (Member != '') {
+                        setIsMember(true);
+                        setProjectMember(Member);
+                    }
 
                     // Check if the 'Uid' field in the document matches the provided UID
                     if (documentData.Uid === uid) {
@@ -166,6 +175,75 @@ export default function landing() {
         catch (error) {
             console.log('we have faced an error', error);
         }
+
+
+    }
+
+
+    // remove the memberId 
+    function removeFromArray(array: [], element: string | null) {
+        return array.filter(item => item !== element);
+    }
+
+    const DeleteRequest = async (projectName: string) => {
+        try {
+            // delete the request and remove from the requests from my map as well as project
+            const q = query(collection(firestore, 'Projects'), where('projectName', "==", projectName))
+            const documents = await getDocs(q);
+            if (!documents.empty) {
+                // get the first document 
+                const documentId = documents.docs[0].id;
+                const data = documents.docs[0].data();
+                const docRef = doc(firestore, 'Projects', documentId)
+                const requestsList = data.requests;
+                if (requestsList.includes(uid)) {
+                    // Remove MemberId from requests list
+                    // const updatedRequestsList = arrayRemove(requestsList, MemberId);
+                    const updatedRequestsList = removeFromArray(requestsList, uid);
+                    console.log('Updated list after removing the id', updatedRequestsList);
+
+                    // Update the document with the modified requests list
+                    await updateDoc(docRef, { requests: updatedRequestsList });
+
+                    console.log(`Member ID ${uid} removed from requests list.`);
+                } else {
+                    console.log(`Member ID ${uid} not found in requests list.`);
+                }
+            }
+        }
+        catch (error) {
+            console.log('not been able to remove the uid from the project document', error);
+        }
+
+        // second step 
+        // remove from the map as well 
+        try {
+            const q = query(collection(firestore, 'Users'), where('Uid', "==", uid))
+            const documents = await getDocs(q)
+            if (!documents.empty) {
+                const documentId = documents.docs[0].id;
+                const documentData = documents.docs[0].data(); // requests map
+                const requestsMap = documentData.Requests || {}; // Get the Requests map
+                if (requestsMap.hasOwnProperty(projectName)) {
+                    // Remove the projectName from the Requests map
+                    delete requestsMap[projectName];
+        
+                    // Update the document with the modified Requests map
+                    await updateDoc(doc(collection(firestore, 'Users'), documentId), { Requests: requestsMap });
+        
+                    console.log(`Project ${projectName} removed from user's requests.`);
+                } else {
+                    console.log(`Project ${projectName} not found in user's requests.`);
+                }
+            }
+            
+        }
+        catch (error) {
+            console.log('not been able to remove the projectName from the users map', error)
+        }
+
+        // hide the request panel
+        setShowRequest(false);
     }
 
     // creating new project
@@ -232,6 +310,7 @@ export default function landing() {
     return (
 
         <main className={styles.body}>
+
             <div className={styles.profileImageDescription}>
                 <img src={imageUrl} alt="Profile image" className={styles.profileImage} />
                 {/* <p>{userName}</p> */}
@@ -261,7 +340,8 @@ export default function landing() {
                 </div>
                 :
                 <div>
-                    <h3 className={styles.projectsStatus}>Oops! No project exist yet!</h3>
+                    {isMember ? '' : <div>
+                    <h3 className={styles.projectsStatus}>Oops! No project exist yet!</h3></div>}
                     <div className="d-flex flex-row justify-center align-center" style={{ gap: 10 }}>
                         <button className={`${styles.userPreferenceButton} ${userPreference === 'Create' ? styles.preferred : ''}`} onClick={() => SetUserPreference('Create')}>Create one</button>
                         <button className={`${styles.userPreferenceButton} ${userPreference === 'Join' ? styles.preferred : ''}`} onClick={() => SetUserPreference('Join')}>Join one</button>
@@ -278,16 +358,26 @@ export default function landing() {
                                 <button onClick={createProject} className={styles.createButton}>Create</button>
                             </div> :
                             // then show join
+                            // this would be conditionally shown if the member does exist then hide this and how that project itself
+
                             <div style={{ marginTop: 25 }}>
-                                <div className={styles.createProject}>
-                                    <p>Project name</p>
-                                    <input type="text" className={styles.projectName} placeholder="Type name of project..." onChange={(e) => setProjectNameCreate(e.target.value)} />
+                                {!isMember ? <div>
+                                    <div className={styles.createProject}>
+                                        <p>Project name</p>
+                                        <input type="text" className={styles.projectName} placeholder="Type name of project..." onChange={(e) => setProjectNameCreate(e.target.value)} />
+                                    </div>
+                                    <div className="d-flex flex-row" style={{ gap: 10 }}>
+                                        <button onClick={joinProject} className={styles.createButton}>Join</button>
+                                        <button onClick={showOldRequests} className={styles.requestButton}>Old Requests</button>
+                                    </div>
                                 </div>
-                                <div className="d-flex flex-row" style={{ gap: 10 }}>
-                                    <button onClick={joinProject} className={styles.createButton}>Join</button>
-                                    <button onClick={showOldRequests} className={styles.requestButton}>Old Requests</button>
-                                </div>
+                                    : <div>
+                                        <button className={styles.projectMember}>{projectMember}</button>
+                                        <button onClick={showOldRequests} className={styles.requestButton}>Old Requests</button>
+                                    </div>
+                                }
                             </div>
+
                     }
                 </div>}
 
@@ -302,9 +392,12 @@ export default function landing() {
                     <div className={styles.requestsData}>
                         {/* show the map data */}
                         {Object.entries(requestsMap).map(([projectName, value]) => (
-                            <div key={projectName} style={{display: 'flex', flexDirection: 'row', gap: 150}}>
-                                <p style={{fontFamily: 'ReadexPro', fontSize: 18}}>{projectName} </p>
-                                <p style={{color: value ? 'green' : 'grey', fontSize: 16}}>{value ? 'Accepted' : 'Waiting'}</p> 
+                            <div key={projectName} style={{ display: 'flex', flexDirection: 'row', gap: 100, alignItems: 'baseline', justifyContent: 'center' }}>
+                                <p style={{ fontFamily: 'ReadexPro', fontSize: 18, color: 'black' }}>{projectName} </p>
+                                <div key={projectName} style={{ display: 'flex', flexDirection: 'row', gap: 10, alignItems: 'baseline', justifyContent: 'center' }}>
+                                    <p style={{ color: value ? 'green' : 'grey', fontSize: 16 }}>{value ? 'Accepted' : 'Waiting'}</p>
+                                    <button onClick={() => DeleteRequest(projectName)} className={styles.deleteButton}><FontAwesomeIcon icon={faTrash} /></button>
+                                </div>
                             </div>
                         ))}
                     </div>

@@ -1,0 +1,54 @@
+.heading
+{
+    font-family: 'ReadexPro';
+    font-size: 20px;
+    font-weight: 400;
+
+}
+
+.requests
+{
+    display: flex;
+    flex-direction: column;
+    gap: 10;
+    justify-content: left;
+    align-items: center;
+}
+
+.requestMemberData
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: last baseline;
+    gap: 200;
+}
+
+.buttons
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 25;
+}
+
+.button
+{
+    width: 150px;
+    height: 50px;
+    background-color: transparent;
+    color: black;
+    font-family: 'ReadexPro';
+    transition: 0.3s;
+    border: 1px solid rgba(0, 0, 0, 0.396);
+    border-radius: 5px;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.button:hover
+{
+    background-color: black;
+    color: white;
+}

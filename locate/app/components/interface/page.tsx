@@ -9,6 +9,7 @@ import { faShare } from '@fortawesome/free-solid-svg-icons';
 import TaskStatus from "./functionComponents/TaskStatus/TaskStatus";
 import CreateTask from "./functionComponents/CreateTask/CreateTask";
 import Members from "./functionComponents/Members/Members";
+import Requests from "./functionComponents/Requests/page";
 // import inviteViaEmail from "../../../../External/invite";
 import { FormControl, Select, MenuItem, InputLabel } from '@mui/material';
 // import mailgun from 'mailgun-js';
@@ -127,6 +128,13 @@ export default function Interface() {
                     >
                         Members
                     </button>
+
+                    <button
+                        className={`${styles.functionButton} ${clickedButton === 'Requests' ? styles.clickedButton : ''}`}
+                        onClick={() => handleButtonClick('Requests')}
+                    >
+                        Requests
+                    </button>
                 </div>
             </div>
 
@@ -143,6 +151,7 @@ export default function Interface() {
                     {currentComponent === 'Create task' && <CreateTask />}
                     {currentComponent === 'Task status' && <TaskStatus />}
                     {currentComponent === 'Members' && <Members />}
+                    {currentComponent === 'Requests' && <Requests />}
                 </div>
             </div>
 

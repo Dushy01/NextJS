@@ -5,11 +5,11 @@ import { useState } from "react";
 
 interface ProjectIdContext {
     projectId: string;
-    projectName: string | null;
+    projectName: string;
 
     // function also
     setProjectId: Dispatch<SetStateAction<string>>
-    setProjectName: Dispatch<SetStateAction<string | null>>
+    setProjectName: Dispatch<SetStateAction<string>>
 }
 
 const ProjectContext = createContext<ProjectIdContext>({
@@ -22,7 +22,7 @@ const ProjectContext = createContext<ProjectIdContext>({
 
 export const GlobalProjectContext = ({children}) => {
     const [projectId, setProjectId] = useState<string>('');
-    const [projectName, setProjectName] = useState<string | null>('');
+    const [projectName, setProjectName] = useState<string>('');
 
 
     return (
