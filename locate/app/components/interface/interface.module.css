@@ -1,5 +1,4 @@
-.profileDescription
-{
+.profileDescription {
     display: flex;
     flex-direction: row;
     justify-content: left;
@@ -8,36 +7,50 @@
 
 }
 
-.profileImage
-{
+.profileImage {
     width: 75px;
     height: 75px;
     border: none;
     cursor: pointer;
     border-radius: 50%;
-    box-shadow: 0px 1px 16px 0px rgb(0, 0, 0);
+    box-shadow: 0px 2px 16px 0px rgb(255, 224, 224);
 }
 
 
-.showProfile
-{
+.showProfile {
     width: 600px;
     height: 400px;
     position: absolute;
     left: 30%;
     margin-top: 7%;
     z-index: 999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
     border: none;
     border-radius: 5px;
     background-color: black;
     padding: 10px;
     color: white;
     font-family: 'ReadexPro';
-    
+    box-shadow: 0px 2px 25px 0px rgb(0, 0, 0);
 }
 
-.profileDescriptionHeader
-{
+.leaveProject {
+    width: 450px;
+    border: none;
+    border-radius: 5px;
+    height: 50px;
+    background-color: red;
+    color: white;
+    font-weight: 400;
+    font-size: 17px;
+    box-shadow: 0px 1px 20px 0px red;
+    margin-top: 25px;
+}
+
+.profileDescriptionHeader {
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -46,8 +59,7 @@
     padding-top: 20px;
 }
 
-.profile
-{
+.profile {
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -55,8 +67,7 @@
     gap: 25px;
 }
 
-.cancelButtons
-{
+.cancelButtons {
     width: 100px;
     height: 50px;
     background-color: rgb(255, 255, 255);
@@ -68,8 +79,7 @@
     border-radius: 5px;
 }
 
-.projectName
-{
+.projectName {
     font-size: 18px;
     font-family: 'ReadexPro';
     font-weight: 600;
@@ -77,20 +87,18 @@
     text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.108);
 }
 
-.functionButtons
-{
+.functionButtons {
 
     width: 100%;
     display: flex;
     flex-direction: column;
     justify-content: left;
     align-items: flex-start;
-  
+
     margin-top: 25px;
 }
 
-.functionButton
-{
+.functionButton {
     width: 100%;
     height: 50px;
     background-color: rgb(0, 0, 0);
@@ -103,22 +111,20 @@
     transition: 0.3s;
 }
 
-.clickedButton
-{
+.clickedButton {
     border: 1px solid cyan;
     border-radius: 5px;
-    
+    color: white;
     box-shadow: 0px 1px 16px 0px cyan;
 }
 
-.headerBar
-{
+.headerBar {
     background-color: black;
     border: none;
     width: 100%;
     height: fit-content;
     padding: 10px;
-    border-radius: 2px;
+    border-radius: 0px;
 
     display: flex;
     flex-direction: row-reverse;
@@ -127,8 +133,7 @@
 
 
 
-.ShareButton
-{
+.ShareButton {
     width: fit-content;
     padding: 10px;
     padding-left: 20px;
@@ -150,37 +155,36 @@
     box-shadow: 0px 1px 8px 0px rgb(255, 255, 255);
 }
 
-.MainContainer
-{
+.MainContainer {
     display: flex;
     flex-direction: row;
     justify-content: left;
     width: 100%;
     max-width: 100%;
-   
+
 }
 
 
-.mainBody
-{
+.mainBody {
     width: 100%;
     max-width: 100%;
 }
 
-.sidebarColumn
-{
-    border-right: 1px solid rgba(0, 0, 0, 0.471);
+.sidebarColumn {
+    border-right: 1px solid rgba(255, 255, 255, 0.371);
     height: 100vh;
     display: flex;
     flex-direction: column;
-    width: 20%;
+    width: 15%;
+
+    align-items: flex-start;
+    background-color: #000000;
     /* padding: 10px; */
 }
 
 
 
-.shareProject
-{
+.shareProject {
     width: fit-content;
     height: fit-content;
     background-color: white;
@@ -188,7 +192,7 @@
     border-radius: 5px;
     padding: 20px;
     display: flex;
-    
+
     flex-direction: column;
     justify-content: left;
     align-items: flex-start;
@@ -197,24 +201,21 @@
     top: 50px;
 }
 
-.inviteHeading
-{
+.inviteHeading {
     font-size: 24px;
     font-weight: 400;
     color: black;
     font-family: 'ReadexPro';
 }
 
-.InviteEmailSection
-{
+.InviteEmailSection {
     display: flex;
     flex-direction: column;
     gap: 5px;
     margin-top: 25px;
 }
 
-.InviteEmail
-{
+.InviteEmail {
     width: 250px;
     height: 50px;
     font-family: 'ReadexPro';
@@ -224,13 +225,11 @@
     margin-top: 10px;
 }
 
-.InviteEmail:focus
-{
+.InviteEmail:focus {
     outline: none;
 }
 
-.InviteEmailButton
-{
+.InviteEmailButton {
     width: fit-content;
     height: fit-content;
     padding: 10px;
@@ -244,8 +243,7 @@
     font-family: 'ReadexPro';
 }
 
-.selectAccessLevel
-{
+.selectAccessLevel {
     font-family: 'ReadexPro';
     background-color: black;
     color: white;
@@ -253,29 +251,28 @@
 }
 
 
-.selectAccessLevel:hover
-{
+.selectAccessLevel:hover {
     color: green;
     background-color: black;
     font-size: 18px;
     font-weight: 600;
 }
 
-.selectLevel:focus
-{
+.selectLevel:focus {
     outline: none;
 }
 
 
 .blurBack {
-    backdrop-filter: blur(5px); /* Adjust the blur strength as needed */
-    background-color: rgba(255, 255, 255, 0.5); /* Adjust the background color and opacity */
-  }
+    backdrop-filter: blur(5px);
+    /* Adjust the blur strength as needed */
+    background-color: rgba(255, 255, 255, 0.5);
+    /* Adjust the background color and opacity */
+}
 
 
 
-  .successfullyInvited
-  {
+.successfullyInvited {
     display: flex;
     flex-direction: row;
     width: fit-content;
@@ -295,18 +292,19 @@
     font-family: 'ReadexPro';
     animation: successfulInvite 1s 1;
     z-index: 999;
-  }
+}
 
-  @keyframes successfulInvite {
-    from  {
-       
+@keyframes successfulInvite {
+    from {
+
         top: -25%;
         left: 80%;
     }
+
     to {
-        
+
         top: 20%;
         left: 80%;
         display: flex;
     }
-  }
+}

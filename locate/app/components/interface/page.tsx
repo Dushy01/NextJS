@@ -1,32 +1,56 @@
 'use client'
 import { useGlobalProjectIdContext } from "@/app/context/projectId"
 import { useGlobalUidContext } from "@/app/context/uid"
-import './page.css';
+
 import styles from './interface.module.css'
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShare } from '@fortawesome/free-solid-svg-icons';
 import TaskStatus from "./functionComponents/TaskStatus/TaskStatus";
 import CreateTask from "./functionComponents/CreateTask/CreateTask";
 import Members from "./functionComponents/Members/Members";
 import Requests from "./functionComponents/Requests/page";
+import { useRouter } from "next/navigation";
 // import inviteViaEmail from "../../../../External/invite";
 import { FormControl, Select, MenuItem, InputLabel } from '@mui/material';
 // import mailgun from 'mailgun-js';
 import axios from 'axios';
-import Image from "next/image";
+
+import { collection, where, query, getDocs, updateDoc, doc, getDoc } from "firebase/firestore";
+import { firestore } from "@/app/firebase";
 
 export default function Interface() {
 
-
+    const router = useRouter();
 
     const [inviteEmailUser, setInviteEmailUser] = useState<string>('');
     const { projectId, projectName } = useGlobalProjectIdContext();
-    const { uid, imageUrl } = useGlobalUidContext();
+    const { uid, imageUrl, setIsProjectMember, isProjectMember } = useGlobalUidContext();
     const [currentComponent, setCurrentComponenet] = useState<string>('Task status');
     const [openProfile, setOpenProfile] = useState<boolean>(false);
     const [showShare, setshowShare] = useState<boolean>(false);
     const [successfulInvite, setSuccessfulInviteUser] = useState<boolean>(false);
+
+
+    // use the useEffect to cross check if the user is a member or creator of the project
+    useEffect(() => {
+        const checkForMember = async () => {
+            const q = query(collection(firestore, 'Projects'), where('projectName', "==", projectName));
+            const documents = await getDocs(q);
+            if (!documents.empty) {
+                const createdBy = documents.docs[0].data().createdBy;
+                console.log('created by', createdBy);
+                console.log('uid is', uid);
+                if (createdBy != uid) {
+                    setIsProjectMember(true);
+                    console.log('is project member value ', isProjectMember);
+                }
+            }
+        }
+
+        checkForMember();
+    });
+
     const changeShare = () => {
         setshowShare(!showShare);
         // setSuccessfulInviteUser(!successfulInvite);
@@ -34,8 +58,67 @@ export default function Interface() {
 
     const OpenProfile = () => {
         setOpenProfile(true);
-
     }
+
+    // remove the memberId 
+    function removeFromArray(array: [], element: string | null) {
+        return array.filter(item => item !== element);
+    }
+
+    const leaveProject = async () => {
+        console.log('leave project is called');
+        // first step
+        try {
+            // Query the user document
+            const q = query(collection(firestore, 'Users'), where('Uid', '==', uid));
+            const documents = await getDocs(q);
+
+            if (!documents.empty) {
+                const userDoc = documents.docs[0];
+                const userDocId = userDoc.id;
+                const userDocData = userDoc.data();
+
+                // Update the Member variable value with an empty string
+                await updateDoc(doc(firestore, 'Users', userDocId), { Member: '' });
+
+                console.log('Member variable updated successfully.');
+            } else {
+                console.log('No user document found for the provided UID.');
+            }
+        } catch (error) {
+            console.error('Error updating the Member variable:', error);
+        }
+
+
+        // second step
+        try {
+            const docRef = doc(firestore, 'Projects', projectId);
+            const document = await getDoc(docRef);
+        
+            if (document.exists()) {
+                const documentId = document.id;
+                const documentData = document.data();
+                const documentMembers = documentData.members || [];
+        
+                if (documentMembers.includes(uid)) {
+                    const removedMember = removeFromArray(documentMembers, uid);
+                    await updateDoc(docRef, { members: removedMember });
+                    console.log('Members list has been updated');
+                } else {
+                    console.log('UID is not included in the member list');
+                }
+            } else {
+                console.log('Document does not exist');
+            }
+        } catch (error) {
+            console.log('Error removing UID from the member list of the project:', error);
+        }
+
+
+        // reroute back to the same page
+        router.push('/components/landing');
+        
+    };
 
     // const inviteViaEmail = (url : string) => {
     //     const DOMAIN = "sandbox99b2efb40c86476f9147da497070a2ff.mailgun.org";
@@ -47,8 +130,9 @@ export default function Interface() {
     //         subject: "Hello",
     //         text: `You have been invited to join a project. Click on the link below to accept the invitation:\n\n${url}`
     //     };
-
     // }
+
+
 
     const [clickedButton, setClickedButton] = useState<string>('');
 
@@ -100,13 +184,13 @@ export default function Interface() {
 
     return (
 
-        <main className={`${styles.MainContainer} ${openProfile ? styles.blurBack : ''}`} style={{ backgroundColor: 'rgba(255, 255, 255, 0.5)' }}>
+        <main className={`${styles.MainContainer}`} >
 
 
             <div className={styles.sidebarColumn}>
                 <div className={styles.profileDescription}>
                     <img src={imageUrl} alt="Profile image" className={styles.profileImage} onClick={OpenProfile} />
-                    <p className={styles.projectName}>{projectName}</p>
+                    {/* <p className={styles.projectName}>{projectName}</p> */}
                 </div>
 
                 <div className={styles.functionButtons}>
@@ -129,12 +213,15 @@ export default function Interface() {
                         Members
                     </button>
 
-                    <button
-                        className={`${styles.functionButton} ${clickedButton === 'Requests' ? styles.clickedButton : ''}`}
-                        onClick={() => handleButtonClick('Requests')}
-                    >
-                        Requests
-                    </button>
+                    {
+                        isProjectMember ? '' :
+                            <button
+                                className={`${styles.functionButton} ${clickedButton === 'Requests' ? styles.clickedButton : ''}`}
+                                onClick={() => handleButtonClick('Requests')}
+                            >
+                                Requests
+                            </button>
+                    }
                 </div>
             </div>
 
@@ -151,7 +238,10 @@ export default function Interface() {
                     {currentComponent === 'Create task' && <CreateTask />}
                     {currentComponent === 'Task status' && <TaskStatus />}
                     {currentComponent === 'Members' && <Members />}
+                    {/* this should be load conditionally */}
+
                     {currentComponent === 'Requests' && <Requests />}
+
                 </div>
             </div>
 
@@ -195,6 +285,13 @@ export default function Interface() {
                         </div>
                         <button className={styles.cancelButtons} onClick={() => setOpenProfile(false)}>Close</button>
                     </div>
+
+                    {/* content for the profile component */}
+                    <div>
+
+                    </div>
+
+                    <button onClick={() => leaveProject()} className={styles.leaveProject}>Leave Project</button>
                 </div>
             }
 

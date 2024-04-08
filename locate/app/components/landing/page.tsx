@@ -18,7 +18,7 @@ export default function landing() {
 
 
     const router = useRouter();
-
+    const [joinProjectName, setJoinProject] = useState('');
     const [showNewProject, setShowCreateNewProject] = useState<boolean>(false);
     const { uid, imageUrl, userName } = useGlobalUidContext();
     const { projectId, projectName, setProjectId, setProjectName } = useGlobalProjectIdContext();
@@ -31,6 +31,7 @@ export default function landing() {
     const [showRequest, setShowRequest] = useState<boolean>(false);
     const [isMember, setIsMember] = useState<boolean>(false);
     const [projectMember, setProjectMember] = useState('');
+    const [successfulJoinRequest, setSuccessfulJoinRequest] = useState<boolean>(false);
 
     useEffect(() => {
         async function getProjects() {
@@ -46,19 +47,21 @@ export default function landing() {
                 querySnapshot.forEach((doc) => {
                     // Get the data of the document
                     const documentData = doc.data();
-                    // get the Member variable check up
-                    const Member = documentData.Member;
-                    console.log('Uid is the member of the project', Member);
-                    if (Member != '') {
-                        setIsMember(true);
-                        setProjectMember(Member);
-                    }
+
 
                     // Check if the 'Uid' field in the document matches the provided UID
                     if (documentData.Uid === uid) {
                         // Return the document data
                         if (documentData.Projects.length > 0) {
                             setProjects(documentData.Projects);
+                        }
+
+                        // get the Member variable check up
+                        const Member = documentData.Member;
+                        console.log('Uid is the member of the project', Member);
+                        if (Member != '') {
+                            setIsMember(true);
+                            setProjectMember(Member);
                         }
                     }
                 });
@@ -114,7 +117,7 @@ export default function landing() {
                 // Check if the project name already exists in the requests map
                 if (!(projectNameCreate in requestsMap)) {
                     // Add the project name to the requests map with a false value
-                    requestsMap[projectNameCreate] = false;
+                    requestsMap[joinProjectName] = false;
 
                     // Update the user document with the modified requests map
                     await updateDoc(doc(firestore, 'Users', documentId), { Requests: requestsMap });
@@ -136,10 +139,10 @@ export default function landing() {
 
 
     const joinProject = async () => {
-
+        console.log('project name for join is', joinProjectName);
         // add thje user uid in the requests list of the project by using the name 
         try {
-            const q = query(collection(firestore, 'Projects'), where('projectName', '==', projectName));
+            const q = query(collection(firestore, 'Projects'), where('projectName', '==', joinProjectName));
             const querySnapshot = await getDocs(q);
             // Check if any documents were found
             if (!querySnapshot.empty) {
@@ -155,6 +158,16 @@ export default function landing() {
                     // Push the new UID into the requests array
                     requests.push(uid);
                     console.log('UID added to requests successfully.');
+
+                    // set the sucessful request sent for the joining of the group
+                    setSuccessfulJoinRequest(true);
+
+                    // After 2 seconds, reset successfulInviteUser to false
+                    setTimeout(() => {
+                        setSuccessfulJoinRequest(false);
+                    }, 2000);
+
+                    
                 } else {
                     console.log('UID already exists in the requests array.');
                 }
@@ -227,16 +240,16 @@ export default function landing() {
                 if (requestsMap.hasOwnProperty(projectName)) {
                     // Remove the projectName from the Requests map
                     delete requestsMap[projectName];
-        
+
                     // Update the document with the modified Requests map
                     await updateDoc(doc(collection(firestore, 'Users'), documentId), { Requests: requestsMap });
-        
+
                     console.log(`Project ${projectName} removed from user's requests.`);
                 } else {
                     console.log(`Project ${projectName} not found in user's requests.`);
                 }
             }
-            
+
         }
         catch (error) {
             console.log('not been able to remove the projectName from the users map', error)
@@ -341,7 +354,7 @@ export default function landing() {
                 :
                 <div>
                     {isMember ? '' : <div>
-                    <h3 className={styles.projectsStatus}>Oops! No project exist yet!</h3></div>}
+                        <h3 className={styles.projectsStatus}>Oops! No project exist yet!</h3></div>}
                     <div className="d-flex flex-row justify-center align-center" style={{ gap: 10 }}>
                         <button className={`${styles.userPreferenceButton} ${userPreference === 'Create' ? styles.preferred : ''}`} onClick={() => SetUserPreference('Create')}>Create one</button>
                         <button className={`${styles.userPreferenceButton} ${userPreference === 'Join' ? styles.preferred : ''}`} onClick={() => SetUserPreference('Join')}>Join one</button>
@@ -364,7 +377,7 @@ export default function landing() {
                                 {!isMember ? <div>
                                     <div className={styles.createProject}>
                                         <p>Project name</p>
-                                        <input type="text" className={styles.projectName} placeholder="Type name of project..." onChange={(e) => setProjectNameCreate(e.target.value)} />
+                                        <input type="text" className={styles.projectName} placeholder="Type name of project..." onChange={(e) => setJoinProject(e.target.value)} />
                                     </div>
                                     <div className="d-flex flex-row" style={{ gap: 10 }}>
                                         <button onClick={joinProject} className={styles.createButton}>Join</button>
@@ -372,7 +385,7 @@ export default function landing() {
                                     </div>
                                 </div>
                                     : <div>
-                                        <button className={styles.projectMember}>{projectMember}</button>
+                                        <button onClick={() => navigateProject(projectMember)} className={styles.projectMember}>{projectMember}</button>
                                         <button onClick={showOldRequests} className={styles.requestButton}>Old Requests</button>
                                     </div>
                                 }
@@ -421,6 +434,14 @@ export default function landing() {
                         </div>
 
                     </div>
+                </div>
+            }
+
+
+            {successfulJoinRequest &&
+                <div className={`${successfulJoinRequest} ? ${styles.successfullyInvited} : ' '`}>
+                    <img src="/invite.png" alt="Successful invite icon" />
+                    <p>Successfully invited</p>
                 </div>
             }
         </main>
