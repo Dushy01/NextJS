@@ -11,6 +11,13 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useGlobalProjectIdContext } from '@/app/context/projectId';
 import { useGlobalUidContext } from '@/app/context/uid';
 import  Assignies  from './assignies';
+
+interface memberData {
+    imageUrl: string,
+    name: string,
+    uid: string
+}
+
 export default function CreateTask() {
 
     // const [selectedFiles, setSelectedFiles] = useState([]);
@@ -24,8 +31,7 @@ export default function CreateTask() {
     const [heading, setHeading] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [deadline, setDeadline] = useState<string>('');
-    const [assignies, setAssignies] = useState<[]>([]); //  data type is missing
-
+    const [assignies, setAssignies] = useState<string[]>([]);
 
 
     const askForFile = () => {
@@ -276,14 +282,14 @@ export default function CreateTask() {
                     <Typography fontFamily={'ReadexPro'} fontSize={20} color={'black'} fontWeight={'bold'}>
                         Assignies
                     </Typography>
-                    <button onClick={() => SetShowAssigniesOption(true)} className={styles.assignButton}>Assign</button>
+                    <button onClick={() => SetShowAssigniesOption(true)} className={styles.assignButton}>{assignies.length} Assign</button>
                 </div>
             </div>
 
             {
                 showAssignOption &&
                 // call a component to show up
-                <Assignies />
+                <Assignies setShowAssignOption={SetShowAssigniesOption} showAssignOption={showAssignOption} setAssignies={setAssignies} assignies={assignies} />
             }
 
 
