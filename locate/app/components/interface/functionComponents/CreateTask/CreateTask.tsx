@@ -6,172 +6,93 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
 import { useState, useEffect } from 'react';
 import { firestore, storage } from '@/app/firebase';
-import { collection, addDoc, updateDoc, getDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, getDoc, doc, query, where, getDocs, arrayUnion } from 'firebase/firestore';
 import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useGlobalProjectIdContext } from '@/app/context/projectId';
 import { useGlobalUidContext } from '@/app/context/uid';
-import  Assignies  from './assignies';
+import Assignies from './assignies';
 
-interface memberData {
-    imageUrl: string,
-    name: string,
-    uid: string
-}
+
 
 export default function CreateTask() {
-
-    // const [selectedFiles, setSelectedFiles] = useState([]);
-    const [fileObject, setFileObject] = useState(null);
-    const [attachedFiles, setAttachedFiles] = useState<boolean>(false);
     const { projectName, projectId } = useGlobalProjectIdContext();
     const { uid } = useGlobalUidContext();
-    const [createTask, setCreateTask] = useState<boolean>(false);
+
+
+    const [attachedFiles, setAttachedFiles] = useState<boolean>(false);
+
+
     const [showAssignOption, SetShowAssigniesOption] = useState<boolean>(false);
 
     const [heading, setHeading] = useState<string>('');
     const [description, setDescription] = useState<string>('');
     const [deadline, setDeadline] = useState<string>('');
+
     const [assignies, setAssignies] = useState<string[]>([]);
+
+    const [fileObject, setFileObject] = useState(null);
 
 
     const askForFile = () => {
         // Get the file input element
         const fileInput: any = document.getElementById('attachments');
+        // Set up an event listener for the change event on the file input
+        fileInput.addEventListener('change', handleFileUpload);
         // Trigger a click event on the file input element
         fileInput.click();
+
     }
 
-    useEffect(() => {
-        const handleFileUpload = async () => {
-            if (createTask) {
-                // Get the file input element
-                const fileInput: any = document.getElementById('attachments');
-                const files = fileInput.files;
-                if (files.length === 0) {
-                    console.error('No files selected for upload');
-                    return;
-                }
 
-                const filesObject: any = {};
+    const handleFileUpload = async () => {
 
-                try {
-                    // Iterate through each file
-                    for (const file of files) {
-                        const fileName = file.name;
-                        const storageRef = ref(storage, fileName);
+        // Get the file input element
+        const fileInput: any = document.getElementById('attachments');
+        fileInput.removeEventListener('change', handleFileUpload);
+        const files = fileInput.files;
+        if (files.length === 0) {
+            console.error('No files selected for upload');
+            return;
+        }
 
-                        // Upload the file
-                        const snapshot = await uploadBytes(storageRef, file);
+        const filesObject: any = {};
 
-                        // Get the download URL of the uploaded file
-                        const downloadURL = await getDownloadURL(storageRef);
+        try {
+            // Iterate through each file
+            for (const file of files) {
+                const fileName = file.name;
+                const storageRef = ref(storage, fileName);
 
-                        // Store the download URL in the filesObject with the file name as key
-                        filesObject[fileName] = downloadURL;
-                    }
+                // Upload the file
+                const snapshot = await uploadBytes(storageRef, file);
 
-                    // Update the fileObject state with the uploaded files
-                    setFileObject(filesObject);
-                    setAttachedFiles(true);
-                } catch (error) {
-                    console.error('Error uploading files:', error);
-                }
+                // Get the download URL of the uploaded file
+                const downloadURL = await getDownloadURL(storageRef);
+
+                // Store the download URL in the filesObject with the file name as key
+                filesObject[fileName] = downloadURL;
             }
-        };
 
-        handleFileUpload();
-    }, [createTask]);
+            // Update the fileObject state with the uploaded files
+            setFileObject(filesObject);
+            setAttachedFiles(true);
+        } catch (error) {
+            console.error('Error uploading files:', error);
+        }
 
-
-
-    // // check if folder eixst
-    // const checkIfFolderExistsByName = async (storage: any, folderName: string | null) => {
-    //     try {
-    //         const folderRef = ref(storage, `${folderName}`);
-
-    //         return true;
-    //     } catch (error) {
-    //         // If an error is thrown, the folder does not exist
-    //         return false;
-    //     }
-    // };
-
-    // // Function to create a folder with a specific name in Firebase Storage
-    // const createFolderWithName = async (storage: any, folderName: string | null) => {
-    //     try {
-    //         const folderRef = ref(storage, `${folderName}`);
-    //         // Uploading an empty file to create the folder
-    //         await uploadBytes(folderRef, new Blob());
-    //     } catch (error) {
-    //         console.error('Error creating folder:', error);
-    //     }
-    // };
-
-    // const uploadFiles = async (files: any) => {
-
-    //     const filesObject: any = {};
+    };
 
 
 
-    //     // // check for the folder if that exist or not
-    //     // const folderExists = await checkIfFolderExistsByName(storage, projectName);
-    //     // if (!folderExists) {
-    //     //     // Create the folder if it doesn't exist
-    //     //     await createFolderWithName(storage, projectName);
-    //     // }
-
-    //     try {
-    //         // Iterate through each file
-    //         for (const file of files) {
-    //             const fileName = file.name;
-    //             const storageRef = ref(storage, fileName);
-
-    //             // Upload the file
-    //             const snapshot = await uploadBytes(storageRef, file);
-
-    //             // Get the download URL of the uploaded file
-    //             const downloadURL = await getDownloadURL(storageRef);
-
-    //             // Store the download URL in the filesObject with the file name as key
-    //             filesObject[fileName] = downloadURL;
-    //         }
-
-    //         return filesObject;
-    //     } catch (error) {
-    //         console.error('Error uploading files:', error);
-    //         return null;
-    //     }
-    // };
-
-    // // Define an event listener to handle file selection
-    // const handleFileSelection = async (event: any) => {
-    //     const files = event.target.files;
-    //     if (files.length === 0) {
-    //         console.error('No files selected for upload');
-    //         return;
-    //     }
-
-
-
-    //     // setSelectedFiles((prevSelectedFiles) => [...prevSelectedFiles, ...fileList]);
-
-    //     setAttachedFiles(true);
-
-    //     if (createTask) {
-    //         const uploadedFiles = await uploadFiles(files);
-    //         console.log(uploadedFiles);
-    //         if (uploadedFiles) {
-    //             // Update the fileObject state with the uploaded files
-    //             setFileObject(uploadedFiles);
-    //             // setAttachedFiles(true);
-    //         }
-    //     }
-    // };
 
 
 
     const createTaskFunction = async () => {
 
+        console.log('file objects are', fileObject);
+        console.log('assignies are', assignies);
+
+        const created_at = getCurrentDate();
 
         // code to create the task 
         const task = {
@@ -179,13 +100,13 @@ export default function CreateTask() {
             'Description': description,
             'CreatedBy': uid,
             'Deadline': deadline,
-            'CreatedAt': getCurrentDate,  // current date in dd/mm/yy format
+            'CreatedAt': created_at,  // current date in dd/mm/yy format
             'Assignies': assignies,
             'Project': projectId,
             'Files': fileObject  // associated files 
         };
 
-        // create this doc inside the Tasks colletion
+        console.log('Task we are adding is', task);
         // Reference to the Firestore collection where you want to add the document
         const collectionRef = collection(firestore, 'Tasks');
 
@@ -193,10 +114,23 @@ export default function CreateTask() {
         const docRef = await addDoc(collectionRef, task);
         console.log('Document added with ID: ', docRef.id);
         const new_task_id = docRef.id;
-        // add the document id in the task list of the prject id 
-        const updateListResult = await updateListInDocument('Projects', projectId, 'TaskIds', new_task_id);
-        // update the task list
-        if (updateListResult) { setCreateTask(true); }
+        try {
+            // add the task id in the project tasksids list 
+            const q = query(collection(firestore, 'Projects'), where('projectName', "==", projectName))
+            const documents = await getDocs(q);
+            if (!documents.empty) {
+                const project_document = documents.docs[0];
+                const documentId = project_document.id;
+
+                const docRef = doc(firestore, 'Projects', documentId)
+                await updateDoc(docRef, {
+                    TasksIds: arrayUnion(new_task_id) // Using arrayUnion to ensure unique IDs
+                });
+            }
+        }
+        catch (error) {
+            console.log('Not been able to update the TasksIds list of the project', error);
+        }
 
     }
 
@@ -250,13 +184,13 @@ export default function CreateTask() {
                     <Typography fontFamily={'ReadexPro'} fontSize={20} color={'black'} fontWeight={'bold'}>
                         Type Heading
                     </Typography>
-                    <input type="text" className={styles.TaskHeading} placeholder='Type heading' />
+                    <input type="text" className={styles.TaskHeading} placeholder='Type heading' onChange={(e) => setHeading(e.target.value)} />
                 </div>
                 <div className='d-flex flex-column m-10' style={{ marginLeft: 10 }}>
                     <Typography fontFamily={'ReadexPro'} fontSize={20} color={'black'} fontWeight={'bold'}>
                         Deadline
                     </Typography>
-                    <input type="date" className={styles.deadline} style={{ height: 50, marginTop: 5, padding: 10 }} placeholder='Deadline' />
+                    <input type="date" className={styles.deadline} style={{ height: 50, marginTop: 5, padding: 10 }} placeholder='Deadline' onChange={(e) => setDeadline(e.target.value)} />
                 </div>
                 {/* attach files and upload them and get the URL from the cloud storage with the types as object  */}
                 <div className='d-flex flex-column m-10' style={{ marginLeft: 10 }}>
@@ -267,8 +201,7 @@ export default function CreateTask() {
                     <input type="file" id='attachments' multiple style={{ display: 'none' }} />
                     <button className="btn btn-outline-secondary" style={{ height: 50, marginTop: 5 }}
                         // define the function call for asking for the file input
-                        onClick={askForFile}
-                    >
+                        onClick={askForFile}>
                         <FontAwesomeIcon icon={faPaperclip} style={{ width: 25, height: 25, color: 'black' }} />
                     </button>
                     <div>
@@ -298,7 +231,7 @@ export default function CreateTask() {
                 <Typography fontFamily={'ReadexPro'} fontSize={20} color={'black'} fontWeight={'bold'}>
                     Type Description
                 </Typography>
-                <textarea className={styles.TaskDescription} placeholder='Type description' style={{ padding: 10, fontFamily: 'ReadexPro' }} />
+                <textarea className={styles.TaskDescription} onChange={(e) => (setDescription(e.target.value))} placeholder='Type description' style={{ padding: 10, fontFamily: 'ReadexPro' }} />
             </div>
             <button onClick={createTaskFunction} style={{ width: 1000, border: 'none', borderRadius: 5, marginLeft: 10, height: 50, fontSize: 20, fontFamily: 'ReadexPro', backgroundColor: 'black', color: 'whitesmoke' }}>Create</button>
         </main>
