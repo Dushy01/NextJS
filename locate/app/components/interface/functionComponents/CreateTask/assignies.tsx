@@ -4,9 +4,9 @@
 import { useEffect, useState } from 'react';
 import { useGlobalProjectIdContext } from '@/app/context/projectId';
 import { firestore } from '@/app/firebase';
-import { doc, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
+import { doc, getDoc, updateDoc, query, collection, where, getDocs } from 'firebase/firestore';
 import styles from './assignies.module.css';
-
+import useBeforeUnload from '@/app/inactive';
 interface memberData {
     imageUrl: string,
     name: string,
@@ -28,6 +28,9 @@ export default function Assignies({ showAssignOption, setShowAssignOption, assig
     const [selectedId, setSelectedUid] = useState<string[]>([]);
 
     useEffect(() => {
+    
+
+
         const loadMembers = async () => {
             const documentRef = doc(firestore, 'Projects', projectId);
             const document = await getDoc(documentRef);

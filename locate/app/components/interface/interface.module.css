@@ -118,6 +118,26 @@
     box-shadow: 0px 1px 16px 0px cyan;
 }
 
+.messageHeader
+{
+    background-color: white;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+    width: 100%;
+    height: fit-content;
+    padding: 10px;
+    border-radius: 0px;
+    display: flex;
+    flex-direction: row;
+}
+
+.messageImage
+{
+    width: 50px;
+    height: 50px;
+    border: none;
+    border-radius: 50%;
+}
+
 .headerBar {
     background-color: black;
     border: none;

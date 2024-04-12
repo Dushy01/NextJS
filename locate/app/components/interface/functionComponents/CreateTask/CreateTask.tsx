@@ -11,10 +11,24 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useGlobalProjectIdContext } from '@/app/context/projectId';
 import { useGlobalUidContext } from '@/app/context/uid';
 import Assignies from './assignies';
-
+import useBeforeUnload from '@/app/inactive';
 
 
 export default function CreateTask() {
+
+    // define the useBeforeUnload hook to change the status 
+    useBeforeUnload(async () => {
+        // listen for changes
+        const q = query(collection(firestore, 'Users'), where('Uid', "==", uid));
+        const documents = await getDocs(q);
+        if (!documents.empty) {
+            const userDoc = documents.docs[0];
+            const userDocId = userDoc.id;
+            const docRef = doc(firestore, 'Users', userDocId);
+            await updateDoc(docRef, {'Status': false});
+        }
+    });
+
     const { projectName, projectId } = useGlobalProjectIdContext();
     const { uid } = useGlobalUidContext();
 

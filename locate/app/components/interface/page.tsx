@@ -1,15 +1,16 @@
 'use client'
 import { useGlobalProjectIdContext } from "@/app/context/projectId"
 import { useGlobalUidContext } from "@/app/context/uid"
-
+import useBeforeUnload from "@/app/inactive"
 import styles from './interface.module.css'
 import { useState, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShare } from '@fortawesome/free-solid-svg-icons';
+import { faL, faShare } from '@fortawesome/free-solid-svg-icons';
 import TaskStatus from "./functionComponents/TaskStatus/TaskStatus";
 import CreateTask from "./functionComponents/CreateTask/CreateTask";
 import Members from "./functionComponents/Members/Members";
 import Requests from "./functionComponents/Requests/page";
+import Chat from "./functionComponents/Members/Chat"
 import { useRouter } from "next/navigation";
 // import inviteViaEmail from "../../../../External/invite";
 import { FormControl, Select, MenuItem, InputLabel } from '@mui/material';
@@ -21,6 +22,19 @@ import { firestore } from "@/app/firebase";
 
 export default function Interface() {
 
+    // // define the useBeforeUnload hook to change the status 
+    // useBeforeUnload(async () => {
+    //     // listen for changes
+    //     const q = query(collection(firestore, 'Users'), where('Uid', "==", uid));
+    //     const documents = await getDocs(q);
+    //     if (!documents.empty) {
+    //         const userDoc = documents.docs[0];
+    //         const userDocId = userDoc.id;
+    //         const docRef = doc(firestore, 'Users', userDocId);
+    //         await updateDoc(docRef, { 'Status': false });
+    //     }
+    // });
+
     const router = useRouter();
 
     const [inviteEmailUser, setInviteEmailUser] = useState<string>('');
@@ -30,6 +44,20 @@ export default function Interface() {
     const [openProfile, setOpenProfile] = useState<boolean>(false);
     const [showShare, setshowShare] = useState<boolean>(false);
     const [successfulInvite, setSuccessfulInviteUser] = useState<boolean>(false);
+
+
+
+    const [openMessage, setOpenMessage] = useState<boolean>(false);
+    const [messageUid, setMessageUid] = useState('');
+    const [messageImageUrl, setMessagUserImageUrl] = useState<string>('');
+    const [messageName, setMessageUserName] = useState<string>('');
+
+    const RemoveMessage = () => {
+        setOpenMessage(false);
+        setMessageUid('');
+        setMessagUserImageUrl('');
+        setMessageUserName('');
+    }
 
 
     // use the useEffect to cross check if the user is a member or creator of the project
@@ -49,7 +77,43 @@ export default function Interface() {
         }
 
         checkForMember();
-    });
+        // const beforeUnload = async (e: BeforeUnloadEvent) => {
+
+        //     const q = query(collection(firestore, 'Users'), where('Uid', "==", uid));
+        //     const documents = await getDocs(q);
+        //     if (!documents.empty) {
+        //         const userDoc = documents.docs[0];
+        //         const userDocId = userDoc.id;
+        //         const docRef = doc(firestore, 'Users', userDocId);
+        //         await updateDoc(docRef, { 'Status': false });
+        //     }
+        //     e.preventDefault();
+        // }
+
+        // window.addEventListener('beforeunload', beforeUnload);
+
+        // return () => {
+
+        //     window.removeEventListener('beforeunload', beforeUnload);
+        // };
+
+
+        // getting the user data for the message for the messageUid
+        const getMessaeUidData = async () => {
+            if (messageUid != '') {
+                const q = query(collection(firestore, 'Users'), where('Uid', "==", messageUid))
+                const documents = await getDocs(q);
+                if (!documents.empty) {
+                    const userDoc = documents.docs[0];
+                    const userDocData = userDoc.data();
+                    setMessageUserName(userDocData.Name);
+                    setMessagUserImageUrl(userDocData.ImageUrl);
+                }
+            }
+        }
+
+        getMessaeUidData();
+    }, [messageUid]);
 
     const changeShare = () => {
         setshowShare(!showShare);
@@ -94,12 +158,12 @@ export default function Interface() {
         try {
             const docRef = doc(firestore, 'Projects', projectId);
             const document = await getDoc(docRef);
-        
+
             if (document.exists()) {
                 const documentId = document.id;
                 const documentData = document.data();
                 const documentMembers = documentData.members || [];
-        
+
                 if (documentMembers.includes(uid)) {
                     const removedMember = removeFromArray(documentMembers, uid);
                     await updateDoc(docRef, { members: removedMember });
@@ -117,7 +181,7 @@ export default function Interface() {
 
         // reroute back to the same page
         router.push('/components/landing');
-        
+
     };
 
     // const inviteViaEmail = (url : string) => {
@@ -226,22 +290,49 @@ export default function Interface() {
             </div>
 
             <div className={styles.mainBody}>
-                <div className={styles.headerBar}>
-                    <button className={styles.ShareButton}
-                        onClick={changeShare}
-                    >Share
-                        <FontAwesomeIcon icon={faShare} style={{ color: '#63E6BE' }} />
-                    </button>
-                </div>
+
+                {/* conditional rendering of the headerbox  */}
+
+                {
+                    openMessage ?
+                        <div className={styles.messageHeader}>
+                            { /* show the profile header for the user */}
+                            <div className={styles.messageHeaderStatus}>
+                                <button onClick={RemoveMessage}>Back</button>
+                                <div className={styles.messageHeaderData}>
+                                    <img className={styles.messageImage} src={messageImageUrl} alt="message user image" />
+                                    <p>{messageName}</p>
+                                </div>
+                            </div>
+                        </div> :
+                        <div className={styles.headerBar}>
+                            <button className={styles.ShareButton}
+                                onClick={changeShare}
+                            >Share
+                                <FontAwesomeIcon icon={faShare} style={{ color: '#63E6BE' }} />
+                            </button>
+                        </div>
+                }
+
+
                 <div style={{ padding: 10 }}>
-                    {/* here the component should be rendered  */}
-                    {currentComponent === 'Create task' && <CreateTask />}
-                    {currentComponent === 'Task status' && <TaskStatus />}
-                    {currentComponent === 'Members' && <Members />}
-                    {/* this should be load conditionally */}
+                    {
+                        openMessage ?
+                            <div>
+                                {/* showing the chat message box  */}
+                                <Chat setOpenMessage={setOpenMessage} openMessage={false} messageUid={messageUid} />
+                            </div>
+                            :
+                            <div>
+                                {/* here the component should be rendered  */}
+                                {currentComponent === 'Create task' && <CreateTask />}
+                                {currentComponent === 'Task status' && <TaskStatus />}
+                                {currentComponent === 'Members' && <Members setOpenMessage={setOpenMessage} openMessage={false} setMessageUid={setMessageUid} />}
+                                {/* this should be load conditionally */}
 
-                    {currentComponent === 'Requests' && <Requests />}
-
+                                {currentComponent === 'Requests' && <Requests />}
+                            </div>
+                    }
                 </div>
             </div>
 

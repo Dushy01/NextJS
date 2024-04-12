@@ -1,0 +1,69 @@
+.members
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.MemberRow
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items:  center;
+    gap: 25px;
+}
+
+.memberData
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 25px;
+}
+
+.userStatusRow
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: last baseline;
+    
+}
+
+.userName
+{
+    font-family: 'ReadexPro';
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.userImage
+{
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    z-index: 999;
+}
+
+.active{
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 50%;
+    background-color: rgb(87, 255, 87);
+    margin-left: -10px;
+}
+
+.inactive {
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 50%;
+    background-color: black;
+    margin-left: -10px;
+}

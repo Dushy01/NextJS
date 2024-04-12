@@ -6,7 +6,7 @@ import { auth } from './firebase';
 import { useGlobalUidContext } from "./context/uid";
 
 import { firestore } from "./firebase";
-import { collection, doc, getDoc, getDocs, query, where } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
@@ -19,6 +19,8 @@ export default function Home() {
     // Set prompt option to select_account
     provider.setCustomParameters({ prompt: 'select_account' });
     const result = await signInWithPopup(auth, provider);
+
+
 
     // Once the user is signed in, update the UID state with the user's UID
     setUid(result.user.uid);
@@ -34,6 +36,12 @@ export default function Home() {
     const userDocSnapshot = await getDocs(q);
 
     if (!userDocSnapshot.empty) {
+      // Set the status to true while signing up 
+      const userDocId = userDocSnapshot.docs[0].id;
+      const docRef = doc(firestore, 'Users', userDocId);
+      await updateDoc(docRef, {'Status': true } );
+
+
       // Document exists, navigate to the landing page
       router.push('/components/landing');
     } else {
