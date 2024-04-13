@@ -1,11 +1,11 @@
 'use client'
 import { useGlobalProjectIdContext } from "@/app/context/projectId"
 import { useGlobalUidContext } from "@/app/context/uid"
-import useBeforeUnload from "@/app/inactive"
+
 import styles from './interface.module.css'
 import { useState, useEffect } from "react";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faL, faShare } from '@fortawesome/free-solid-svg-icons';
+import Image from "next/image"
+
 import TaskStatus from "./functionComponents/TaskStatus/TaskStatus";
 import CreateTask from "./functionComponents/CreateTask/CreateTask";
 import Members from "./functionComponents/Members/Members";
@@ -22,29 +22,18 @@ import { firestore } from "@/app/firebase";
 
 export default function Interface() {
 
-    // // define the useBeforeUnload hook to change the status 
-    // useBeforeUnload(async () => {
-    //     // listen for changes
-    //     const q = query(collection(firestore, 'Users'), where('Uid', "==", uid));
-    //     const documents = await getDocs(q);
-    //     if (!documents.empty) {
-    //         const userDoc = documents.docs[0];
-    //         const userDocId = userDoc.id;
-    //         const docRef = doc(firestore, 'Users', userDocId);
-    //         await updateDoc(docRef, { 'Status': false });
-    //     }
-    // });
+    
 
     const router = useRouter();
 
     const [inviteEmailUser, setInviteEmailUser] = useState<string>('');
     const { projectId, projectName } = useGlobalProjectIdContext();
     const { uid, imageUrl, setIsProjectMember, isProjectMember } = useGlobalUidContext();
-    const [currentComponent, setCurrentComponenet] = useState<string>('Task status');
+    const [currentComponent, setCurrentComponenet] = useState<string>('Create task');
     const [openProfile, setOpenProfile] = useState<boolean>(false);
     const [showShare, setshowShare] = useState<boolean>(false);
     const [successfulInvite, setSuccessfulInviteUser] = useState<boolean>(false);
-
+    
 
 
     const [openMessage, setOpenMessage] = useState<boolean>(false);
@@ -77,26 +66,6 @@ export default function Interface() {
         }
 
         checkForMember();
-        // const beforeUnload = async (e: BeforeUnloadEvent) => {
-
-        //     const q = query(collection(firestore, 'Users'), where('Uid', "==", uid));
-        //     const documents = await getDocs(q);
-        //     if (!documents.empty) {
-        //         const userDoc = documents.docs[0];
-        //         const userDocId = userDoc.id;
-        //         const docRef = doc(firestore, 'Users', userDocId);
-        //         await updateDoc(docRef, { 'Status': false });
-        //     }
-        //     e.preventDefault();
-        // }
-
-        // window.addEventListener('beforeunload', beforeUnload);
-
-        // return () => {
-
-        //     window.removeEventListener('beforeunload', beforeUnload);
-        // };
-
 
         // getting the user data for the message for the messageUid
         const getMessaeUidData = async () => {
@@ -184,21 +153,11 @@ export default function Interface() {
 
     };
 
-    // const inviteViaEmail = (url : string) => {
-    //     const DOMAIN = "sandbox99b2efb40c86476f9147da497070a2ff.mailgun.org";
-    //     const mg = mailgun({ apiKey: "ad8a488ee07e8f4a25b869a8d7727990-f68a26c9-2e0f8986", domain: DOMAIN });
-
-    //     const data = {
-    //         from: "Mailgun Sandbox <postmaster@sandbox99b2efb40c86476f9147da497070a2ff.mailgun.org>",
-    //         to: "agreharshit610@gmail.com",
-    //         subject: "Hello",
-    //         text: `You have been invited to join a project. Click on the link below to accept the invitation:\n\n${url}`
-    //     };
-    // }
+  
 
 
 
-    const [clickedButton, setClickedButton] = useState<string>('');
+    const [clickedButton, setClickedButton] = useState<string>('Create task');
 
     // Function to handle button click
     const handleButtonClick = (buttonName: string) => {
@@ -253,17 +212,18 @@ export default function Interface() {
 
             <div className={styles.sidebarColumn}>
                 <div className={styles.profileDescription}>
-                    <img src={imageUrl} alt="Profile image" className={styles.profileImage} onClick={OpenProfile} />
+                    <img src={imageUrl} alt="Profile image" className={styles.profileImage} />
                     {/* <p className={styles.projectName}>{projectName}</p> */}
                 </div>
 
                 <div className={styles.functionButtons}>
+
                     <button
                         className={`${styles.functionButton} ${clickedButton === 'Create task' ? styles.clickedButton : ''}`}
-                        onClick={() => handleButtonClick('Create task')}
-                    >
+                        onClick={() => handleButtonClick('Create task')}>
                         Create task
                     </button>
+
                     <button
                         className={`${styles.functionButton} ${clickedButton === 'Task status' ? styles.clickedButton : ''}`}
                         onClick={() => handleButtonClick('Task status')}
@@ -286,6 +246,16 @@ export default function Interface() {
                                 Requests
                             </button>
                     }
+
+                    /* setting button for the profile changes and what ever */
+                    <button
+                        className={`${styles.SettingButton}`}
+                        onClick={OpenProfile}
+                    >
+                        <img src="/Settings.png" alt="Setting icon" />
+                        Settings
+
+                    </button>
                 </div>
             </div>
 
@@ -309,7 +279,7 @@ export default function Interface() {
                             <button className={styles.ShareButton}
                                 onClick={changeShare}
                             >Share
-                                <FontAwesomeIcon icon={faShare} style={{ color: '#63E6BE' }} />
+                               <img src="/Share.png" alt="share icon"/>
                             </button>
                         </div>
                 }

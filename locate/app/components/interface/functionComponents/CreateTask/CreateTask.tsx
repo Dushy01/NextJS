@@ -3,7 +3,7 @@
 import { Typography, TextField } from '@mui/material'
 import styles from './createask.module.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPaperclip } from '@fortawesome/free-solid-svg-icons';
+import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import { useState, useEffect } from 'react';
 import { firestore, storage } from '@/app/firebase';
 import { collection, addDoc, updateDoc, getDoc, doc, query, where, getDocs, arrayUnion } from 'firebase/firestore';
@@ -12,7 +12,7 @@ import { useGlobalProjectIdContext } from '@/app/context/projectId';
 import { useGlobalUidContext } from '@/app/context/uid';
 import Assignies from './assignies';
 import useBeforeUnload from '@/app/inactive';
-
+import Image from 'next/image';
 
 export default function CreateTask() {
 
@@ -25,7 +25,7 @@ export default function CreateTask() {
             const userDoc = documents.docs[0];
             const userDocId = userDoc.id;
             const docRef = doc(firestore, 'Users', userDocId);
-            await updateDoc(docRef, {'Status': false});
+            await updateDoc(docRef, { 'Status': false });
         }
     });
 
@@ -45,6 +45,10 @@ export default function CreateTask() {
     const [assignies, setAssignies] = useState<string[]>([]);
 
     const [fileObject, setFileObject] = useState(null);
+    const [fileObjectView, setFileObjectForView] = useState<any>({});
+
+    const [openAttachmentView, setOpenAttachmentView] = useState(false);
+
 
 
     const askForFile = () => {
@@ -57,18 +61,12 @@ export default function CreateTask() {
 
     }
 
-
-    const handleFileUpload = async () => {
-
-        // Get the file input element
+    // function to upload the files for the cloud storage and get the fileObject which has name + URL 
+    const uploadFiles = async () => {
         const fileInput: any = document.getElementById('attachments');
-        fileInput.removeEventListener('change', handleFileUpload);
         const files = fileInput.files;
-        if (files.length === 0) {
-            console.error('No files selected for upload');
-            return;
-        }
 
+        // store the name with the download URL 
         const filesObject: any = {};
 
         try {
@@ -89,17 +87,45 @@ export default function CreateTask() {
 
             // Update the fileObject state with the uploaded files
             setFileObject(filesObject);
-            setAttachedFiles(true);
+
+
         } catch (error) {
             console.error('Error uploading files:', error);
         }
+    }
 
+
+
+    const handleFileUpload = async () => {
+        // Get the file input element
+        const fileInput = document.getElementById('attachments') as HTMLInputElement;
+        fileInput.removeEventListener('change', handleFileUpload);
+        const files = fileInput.files;
+        if (!files || files.length === 0) {
+            console.error('No files selected for upload');
+            return;
+        }
+        setAttachedFiles(true);
+
+        // Create an object to store files
+        const filesObject: any = {};
+
+        try {
+            // Convert FileList to array of File objects
+            const fileList = Array.from(files) as File[];
+
+            // Iterate through each file
+            for (const file of fileList) {
+                const fileName = file.name;
+                // Store the file in the filesObject with the file name as key
+                filesObject[fileName] = file;
+            }
+            // Update the fileObject state with the uploaded files
+            setFileObjectForView(filesObject);
+        } catch (error) {
+            console.error('Error uploading files:', error);
+        }
     };
-
-
-
-
-
 
     const createTaskFunction = async () => {
 
@@ -191,47 +217,105 @@ export default function CreateTask() {
         return `${dd}/${mm}/${yy}`;
     };
 
+
+    const selectDeadline = () => {
+        const deadlineInput = document.getElementById('deadline') as HTMLInputElement;
+        if (deadlineInput) {
+            // Trigger a click event on the input field
+            deadlineInput.click();
+        }
+    };
+
+
+    const handleDeadlineChange = (event: Event) => {
+        const target = event.target as HTMLInputElement;
+        setDeadline(target.value);
+    };
+
+    const handleDeleteFile = (fileName: string) => {
+        // Create a copy of the fileObjectForView state
+        const updatedFileObject = { ...fileObjectView };
+        // Remove the file with the specified file name
+        delete updatedFileObject[fileName];
+        // Update the fileObjectForView state with the updated fileObject
+        setFileObjectForView(updatedFileObject);
+    };
+
     return (
-        <main>
-            <div className='d-flex flex-row align-items-baseline justify-content-start'>
-                <div className='d-flex flex-column m-10' style={{ marginLeft: 10 }}>
-                    <Typography fontFamily={'ReadexPro'} fontSize={20} color={'black'} fontWeight={'bold'}>
-                        Type Heading
-                    </Typography>
-                    <input type="text" className={styles.TaskHeading} placeholder='Type heading' onChange={(e) => setHeading(e.target.value)} />
-                </div>
-                <div className='d-flex flex-column m-10' style={{ marginLeft: 10 }}>
-                    <Typography fontFamily={'ReadexPro'} fontSize={20} color={'black'} fontWeight={'bold'}>
-                        Deadline
-                    </Typography>
-                    <input type="date" className={styles.deadline} style={{ height: 50, marginTop: 5, padding: 10 }} placeholder='Deadline' onChange={(e) => setDeadline(e.target.value)} />
-                </div>
-                {/* attach files and upload them and get the URL from the cloud storage with the types as object  */}
-                <div className='d-flex flex-column m-10' style={{ marginLeft: 10 }}>
-                    <Typography fontFamily={'ReadexPro'} fontSize={20} color={'black'} fontWeight={'bold'}>
-                        Attachment
-                    </Typography>
+        <main className={styles.mainBody}>
+
+
+            <div className={styles.topBar}>
+
+                <input type="text" className={styles.TaskHeading} placeholder='Type heading...' onChange={(e) => setHeading(e.target.value)} />
+
+                <button className={styles.deadline} onClick={selectDeadline}>
+
+                    <img src="/Deadline.png" alt="Calendar icon" />
+                    Select deadline
+
+                    <input type="date" id='deadline' style={{ display: 'none' }} onChange={() => handleDeadlineChange} placeholder='Select Deadline' />
+                </button>
+            </div>
+
+            <div className={styles.midBar}>
+                <textarea className={styles.TaskDescription} onChange={(e) => (setDescription(e.target.value))} placeholder='Type description...' style={{ padding: 10, fontFamily: 'ReadexPro' }} />
+            </div>
+
+
+
+
+            <div className={styles.bottomBar}>
+                <div className={styles.attachmentBar}>
                     {/* onChange={handleFileSelection} */}
                     <input type="file" id='attachments' multiple style={{ display: 'none' }} />
-                    <button className="btn btn-outline-secondary" style={{ height: 50, marginTop: 5 }}
+
+                    <button className={styles.attachmentButton} style={{ height: 50, marginTop: 5 }}
                         // define the function call for asking for the file input
                         onClick={askForFile}>
-                        <FontAwesomeIcon icon={faPaperclip} style={{ width: 25, height: 25, color: 'black' }} />
+                        <img src="/Attach.png" alt="Attachement icon" />
+                        Attach Files
                     </button>
+
                     <div>
                         {/* onClick={showAttachementFiles} */}
-                        {attachedFiles && <button className={styles.attachments} >Attachments</button>}
+                        {attachedFiles && <button onClick={() => setOpenAttachmentView(true)} className={styles.attachments} >Attachments</button>}
                     </div>
                 </div>
 
+                {
+                    openAttachmentView &&
+                    // show the attachment for the view of the task 
+
+                    <div className={styles.attachementViewPopup}>
+                        <div className={styles.attachmentHeder}>
+                            <h3>Files to upload</h3>
+                            <button className={styles.closeButton} onClick={() => setOpenAttachmentView(false)}>Close</button>
+                        </div>
+                        <div className={styles.files}>
+                            {Object.keys(fileObjectView).map((fileName, index) => (
+                                <div key={index} className={styles.fileData}>
+                                    <span>{fileName}</span>
+                                    <button className={styles.deleteFileButton} onClick={() => handleDeleteFile(fileName)}><FontAwesomeIcon icon={faTrash} /></button>
+                                </div>
+                            ))}
+                        </div>
+                        <div className={styles.fileHandlingButtons}>
+                            <button className={styles.fileHandlingButton}>Add</button>
+                            <button className={styles.fileHandlingButton}>Upload</button>
+                        </div>
+                    </div>
+                }
+
                 {/* button to add assignies */}
-                <div className='d-flex flex-column m-10' style={{ marginLeft: 10 }}>
-                    <Typography fontFamily={'ReadexPro'} fontSize={20} color={'black'} fontWeight={'bold'}>
-                        Assignies
-                    </Typography>
-                    <button onClick={() => SetShowAssigniesOption(true)} className={styles.assignButton}>{assignies.length} Assign</button>
+                <div >
+
+                    <button onClick={() => SetShowAssigniesOption(true)} className={styles.assignButton}>
+                        <img src="/Peoples.png" alt="Peoples icon" />
+                        {assignies.length} Assign</button>
                 </div>
             </div>
+
 
             {
                 showAssignOption &&
@@ -239,15 +323,7 @@ export default function CreateTask() {
                 <Assignies setShowAssignOption={SetShowAssigniesOption} showAssignOption={showAssignOption} setAssignies={setAssignies} assignies={assignies} />
             }
 
-
-
-            <div className={styles.mainBody}>
-                <Typography fontFamily={'ReadexPro'} fontSize={20} color={'black'} fontWeight={'bold'}>
-                    Type Description
-                </Typography>
-                <textarea className={styles.TaskDescription} onChange={(e) => (setDescription(e.target.value))} placeholder='Type description' style={{ padding: 10, fontFamily: 'ReadexPro' }} />
-            </div>
-            <button onClick={createTaskFunction} style={{ width: 1000, border: 'none', borderRadius: 5, marginLeft: 10, height: 50, fontSize: 20, fontFamily: 'ReadexPro', backgroundColor: 'black', color: 'whitesmoke' }}>Create</button>
+            <button onClick={createTaskFunction} style={{ width: 915, border: 'none', borderRadius: 5, marginTop: 10, height: 50, fontSize: 20, fontFamily: 'ReadexPro', backgroundColor: 'black', color: 'whitesmoke' }}>Create</button>
         </main>
     )
 }
