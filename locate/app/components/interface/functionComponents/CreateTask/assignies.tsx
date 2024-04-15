@@ -87,6 +87,7 @@ export default function Assignies({ showAssignOption, setShowAssignOption, assig
         const searchTerm = event.target.value.toLowerCase();
         if (searchTerm.length > 0) {
             const filteredMembers = memberData.filter(member => member.name.toLowerCase().includes(searchTerm));
+          
             setFilteredMembers(filteredMembers);
         } else {
             setFilteredMembers([]);
@@ -97,20 +98,32 @@ export default function Assignies({ showAssignOption, setShowAssignOption, assig
         <main>
             <div className={styles.membersOptions}>
                 <input type="text" placeholder='Search member...' className={styles.searchBar} onChange={filterMembers} />
+                
                 <div className={styles.membersList}>
                     {filteredMembers.length > 0 ? (
+                        
                         filteredMembers.map(member => (
+                            
                             <div key={member.uid} className={`${styles.memberTile} ${member.selected ? styles.selectedUser : ''}`} onClick={() => addUid(member.uid)} onDoubleClick={() => removeUid(member.uid)}>
+                                <div className={styles.memberTileData}>
                                 <img src={member.imageUrl} className={styles.memberImage} alt={member.name} />
                                 <p className={styles.memberName}>{member.name}</p>
+                                </div>
                             </div>
+                            
                         ))
+
                     ) : (
+                        
                         memberData.map(member => (
+                            
                             <div key={member.uid} className={`${styles.memberTile} ${member.selected ? styles.selectedUser : ''}`} onClick={() => addUid(member.uid)} onDoubleClick={() => removeUid(member.uid)}>
+                                <div className={styles.memberTileData}>
                                 <img src={member.imageUrl} className={styles.memberImage} alt={member.name} />
                                 <p className={styles.memberName}>{member.name}</p>
+                                </div>
                             </div>
+
                         ))
                     )}
                 </div>

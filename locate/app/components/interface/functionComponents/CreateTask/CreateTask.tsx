@@ -1,6 +1,9 @@
 // Importing a Material-UI button component
 'use client'
 import { Typography, TextField } from '@mui/material'
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import styles from './createask.module.css'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
@@ -13,6 +16,7 @@ import { useGlobalUidContext } from '@/app/context/uid';
 import Assignies from './assignies';
 import useBeforeUnload from '@/app/inactive';
 import Image from 'next/image';
+import axios from 'axios';
 
 export default function CreateTask() {
 
@@ -30,7 +34,7 @@ export default function CreateTask() {
     });
 
     const { projectName, projectId } = useGlobalProjectIdContext();
-    const { uid } = useGlobalUidContext();
+    const { uid, userName } = useGlobalUidContext();
 
 
     const [attachedFiles, setAttachedFiles] = useState<boolean>(false);
@@ -40,11 +44,11 @@ export default function CreateTask() {
 
     const [heading, setHeading] = useState<string>('');
     const [description, setDescription] = useState<string>('');
-    const [deadline, setDeadline] = useState<string>('');
+    const [deadline, setDeadline] = useState<any>('');
 
     const [assignies, setAssignies] = useState<string[]>([]);
 
-    const [fileObject, setFileObject] = useState(null);
+    const [fileObject, setFileObject] = useState<any>(null);
     const [fileObjectView, setFileObjectForView] = useState<any>({});
 
     const [openAttachmentView, setOpenAttachmentView] = useState(false);
@@ -61,40 +65,47 @@ export default function CreateTask() {
 
     }
 
-    // function to upload the files for the cloud storage and get the fileObject which has name + URL 
     const uploadFiles = async () => {
-        const fileInput: any = document.getElementById('attachments');
-        const files = fileInput.files;
-
-        // store the name with the download URL 
-        const filesObject: any = {};
+        // Create an object to store download URLs
+        const downloadURLs: Record<string, string> = {};
 
         try {
-            // Iterate through each file
-            for (const file of files) {
-                const fileName = file.name;
-                const storageRef = ref(storage, fileName);
+            // Iterate through each file in fileObjectView
+            for (const fileName in fileObjectView) {
+                if (fileObjectView.hasOwnProperty(fileName)) {
+                    const file = fileObjectView[fileName];
 
-                // Upload the file
-                const snapshot = await uploadBytes(storageRef, file);
+                    // Upload the file to cloud storage
+                    const storageRef = ref(storage, fileName);
+                    const snapshot = await uploadBytes(storageRef, file);
 
-                // Get the download URL of the uploaded file
-                const downloadURL = await getDownloadURL(storageRef);
+                    // Get the download URL of the uploaded file
+                    const downloadURL = await getDownloadURL(storageRef);
 
-                // Store the download URL in the filesObject with the file name as key
-                filesObject[fileName] = downloadURL;
+                    // Store the download URL in the downloadURLs object with the file name as key
+                    downloadURLs[fileName] = downloadURL;
+                }
             }
 
-            // Update the fileObject state with the uploaded files
-            setFileObject(filesObject);
+            // Update the fileObject state with the download URLs
+            setFileObject(downloadURLs);
 
 
         } catch (error) {
             console.error('Error uploading files:', error);
         }
+
+        // after successful upload hide all the dialogs 
+        setAttachedFiles(false);
+        setOpenAttachmentView(false);
+    };
+
+
+
+
+    const addFiles = () => {
+        askForFile(); // call for the file input and select more files 
     }
-
-
 
     const handleFileUpload = async () => {
         // Get the file input element
@@ -107,24 +118,28 @@ export default function CreateTask() {
         }
         setAttachedFiles(true);
 
-        // Create an object to store files
-        const filesObject: any = {};
-
         try {
             // Convert FileList to array of File objects
             const fileList = Array.from(files) as File[];
 
-            // Iterate through each file
+            // Create a copy of the existing fileObjectView state
+            const updatedFileObjectView = { ...fileObjectView };
+
+            // Iterate through each new file
             for (const file of fileList) {
                 const fileName = file.name;
-                // Store the file in the filesObject with the file name as key
-                filesObject[fileName] = file;
+                // Add the new file to the updatedFileObjectView
+                updatedFileObjectView[fileName] = file;
             }
-            // Update the fileObject state with the uploaded files
-            setFileObjectForView(filesObject);
+            // Update the fileObjectView state with the merged files
+            setFileObjectForView(updatedFileObjectView);
+
+
         } catch (error) {
             console.error('Error uploading files:', error);
         }
+
+
     };
 
     const createTaskFunction = async () => {
@@ -172,6 +187,28 @@ export default function CreateTask() {
             console.log('Not been able to update the TasksIds list of the project', error);
         }
 
+        // function to send an mail to all the assigned user 
+        // get each user gmail who has been assigned with the body
+        const userGmails = [];
+        for (const id of assignies) {
+            const q = query(collection(firestore, 'Users'), where('Uid', "==", id));
+            const documents = await getDocs(q);
+            if (!documents.empty) {
+                const userDocEmail = documents.docs[0].data().Email;
+                userGmails.push(userDocEmail);
+            }
+        }
+
+
+
+        const response = await axios.post('http://localhost:5000/sendTaskCreate', {
+            'Headline': heading,
+            'Deadline': deadline,
+            'CreatedAt': created_at,
+            'CreatedBy': userName,
+            'Members': userGmails
+        });
+        console.log(response)
     }
 
     // update the list
@@ -218,19 +255,23 @@ export default function CreateTask() {
     };
 
 
-    const selectDeadline = () => {
-        const deadlineInput = document.getElementById('deadline') as HTMLInputElement;
-        if (deadlineInput) {
-            // Trigger a click event on the input field
-            deadlineInput.click();
-        }
-    };
+    // const selectDeadline = () => {
+    //     const deadlineInput = document.getElementById('deadline') as HTMLInputElement;
+    //     if (deadlineInput) {
+    //         deadlineInput.focus();
+    //     }
+    // };
 
 
-    const handleDeadlineChange = (event: Event) => {
-        const target = event.target as HTMLInputElement;
-        setDeadline(target.value);
-    };
+    // const handleDeadlineChange = (event: Event) => {
+    //     const target = event.target as HTMLInputElement;
+    //     setDeadline(target.value);
+    // };
+
+    const handleDateChange = (date: any) => {
+        setDeadline(date);
+        console.log('Selected Date type:', typeof date); // Log the selected date
+      };
 
     const handleDeleteFile = (fileName: string) => {
         // Create a copy of the fileObjectForView state
@@ -241,6 +282,8 @@ export default function CreateTask() {
         setFileObjectForView(updatedFileObject);
     };
 
+
+
     return (
         <main className={styles.mainBody}>
 
@@ -248,14 +291,23 @@ export default function CreateTask() {
             <div className={styles.topBar}>
 
                 <input type="text" className={styles.TaskHeading} placeholder='Type heading...' onChange={(e) => setHeading(e.target.value)} />
-
+                {/* 
                 <button className={styles.deadline} onClick={selectDeadline}>
 
                     <img src="/Deadline.png" alt="Calendar icon" />
                     Select deadline
 
-                    <input type="date" id='deadline' style={{ display: 'none' }} onChange={() => handleDeadlineChange} placeholder='Select Deadline' />
+                    <input type="date" id='deadline' style={{ display: 'none' }} onChange={()=>handleDeadlineChange} placeholder='Select Deadline' />
                 </button>
+                */}
+                <div className={styles.datepickerContainer}>
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+
+                        <DatePicker className={styles.datepicker}     label="Select deadline" />
+
+                    </LocalizationProvider>
+                </div>
+
             </div>
 
             <div className={styles.midBar}>
@@ -301,8 +353,8 @@ export default function CreateTask() {
                             ))}
                         </div>
                         <div className={styles.fileHandlingButtons}>
-                            <button className={styles.fileHandlingButton}>Add</button>
-                            <button className={styles.fileHandlingButton}>Upload</button>
+                            <button onClick={addFiles} className={styles.fileHandlingButton}>Add</button>
+                            <button onClick={uploadFiles} className={styles.fileHandlingButton}>Upload</button>
                         </div>
                     </div>
                 }

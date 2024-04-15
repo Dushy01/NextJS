@@ -259,3 +259,24 @@
 {
     outline: none;
 }
+
+.datepicker
+{
+    width: 400px;
+    
+    color: rgba(0, 0, 0, 0.263);
+    font-family: 'ReadexPro';
+    border: #D99BFF;
+    height: 40px;
+}
+
+.datepickerContainer
+{
+    margin-top: -15px;
+    height: 40px;
+}
+
+.datepicker:focus
+{
+    outline: none;    
+}

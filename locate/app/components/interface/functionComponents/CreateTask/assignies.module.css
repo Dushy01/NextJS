@@ -59,7 +59,7 @@
     flex-direction: column;
     justify-content: start;
     align-items: center;
-    
+    margin-top: 25px;
 }
 
 .membersList::-webkit-scrollbar {
@@ -70,7 +70,7 @@
 {
     display: flex;
     flex-direction: row;
-    align-items:  baseline;
+    align-items:  center;
     justify-content: center;
     border: 1px solid rgba(0, 0, 0, 0.227);
     border-radius: 5px;
@@ -78,6 +78,15 @@
     width: 400px;
     height: fit-content;
     padding: 5px;
+}
+
+.memberTileData
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: last baseline;
+    align-items: center;
+    gap: 10px;
 }
 
 .selectedUser
@@ -90,6 +99,7 @@
 {
     font-weight: 400;
     font-size: 16px;
+    margin-top: 15px;
     font-family: 'ReadexPro';
 }
 

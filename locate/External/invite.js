@@ -129,6 +129,41 @@ const inviteEmail = (invitedUser, invitedUrl, callback) => {
     });
 };
 
+
+// Define the inviteEmail function with a callback parameter
+const createTask = (invitedUser, invitedData, callback) => {
+    // Create a transporter object with your email service credentials
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'agreharshit610@gmail.com',
+            pass: 'nzgj amef lhwx jcgt'
+        }
+    });
+
+    // Define the email content
+    const mailOptions = {
+        from: invitedUser,
+        to: invitedUser,
+        subject: 'New Task Assigned',
+        text: `You have been assigned with a new task. \n
+        ${invitedData.Heading}, created by ${invitedData.CreatedBy} at ${invitedData.CreatedAt} and the deadline for this task is ${invitedData.Deadline}`
+    };
+
+    // Send the email
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error('Error sending email:', error);
+            // Call the callback with false if there's an error
+            callback(false);
+        } else {
+            console.log('Email sent:', info.response);
+            // Call the callback with true if the email is sent successfully
+            callback(true);
+        }
+    });
+};
+
 // Define the route to handle sending invitations
 app.post('/sendInvite', (req, res) => {
     const { inviteTo, UniqueUrl } = req.body;
@@ -144,6 +179,22 @@ app.post('/sendInvite', (req, res) => {
             res.status(500).send('Failed to send invitation');
         }
     });
+});
+
+app.post('/sendTaskCreate', (req, res) => {
+    const {Heading, Deadline, CreatedAt, CreatedBy, Members} = req.body;
+    const taskData = {
+        'Heading': Heading,
+        'Deadline': Deadline,
+        'CreatedAt': CreatedAt,
+        'CreatedBy': CreatedBy
+    }
+    for (const member of Members) {
+        console.log('inviting', member);
+       createTask(member, taskData);
+    }
+
+    res.status(200).send('Invitation sent successfully');
 });
 
 
