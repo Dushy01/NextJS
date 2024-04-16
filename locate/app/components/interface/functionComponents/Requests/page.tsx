@@ -192,22 +192,27 @@ export default function Requests() {
 
     return (
         <main className={styles.body}>
-            <p className={styles.heading}>Requests</p>
+            
             {/* load the uid from the requests list  */}
-            <div className={styles.requests}>
-                {requestMembersData.map((userData, index) => (
-                    <div key={userData.Uid} className={styles.requestMemberData}>
-                        <div className={styles.buttons}>
-                            <img src={userData.ImageUrl} style={{ width: 50, height: 50, border: 'none', 'borderRadius': '50%' }} alt={userData.Name} />
-                            <p>{userData.Name}</p>
+            {requestMembersData.length > 0 ?
+                <div className={styles.requests}>
+                    {requestMembersData.map((userData, index) => (
+                        <div key={userData.Uid} className={styles.requestMemberData}>
+                            <div className={styles.buttons}>
+                                <img src={userData.ImageUrl} style={{ width: 50, height: 50, border: 'none', 'borderRadius': '50%' }} alt={userData.Name} />
+                                <p>{userData.Name}</p>
+                            </div>
+                            <div className={styles.buttons}>
+                                <button className={styles.button} onClick={() => AcceptRequest(userData.Uid)}>Accept</button>
+                                <button className={styles.button} onClick={() => RejectRequest(userData.Uid)}>Reject</button>
+                            </div>
                         </div>
-                        <div className={styles.buttons}>
-                            <button className={styles.button} onClick={() => AcceptRequest(userData.Uid)}>Accept</button>
-                            <button className={styles.button} onClick={() => RejectRequest(userData.Uid)}>Reject</button>
-                        </div>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div> : 
+                <div className={styles.noRequest}>
+                    <p>No requests yet!</p>
+                </div>
+            }
         </main>
     )
 }

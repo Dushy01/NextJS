@@ -20,18 +20,7 @@ import axios from 'axios';
 
 export default function CreateTask() {
 
-    // define the useBeforeUnload hook to change the status 
-    useBeforeUnload(async () => {
-        // listen for changes
-        const q = query(collection(firestore, 'Users'), where('Uid', "==", uid));
-        const documents = await getDocs(q);
-        if (!documents.empty) {
-            const userDoc = documents.docs[0];
-            const userDocId = userDoc.id;
-            const docRef = doc(firestore, 'Users', userDocId);
-            await updateDoc(docRef, { 'Status': false });
-        }
-    });
+
 
     const { projectName, projectId } = useGlobalProjectIdContext();
     const { uid, userName } = useGlobalUidContext();
@@ -142,6 +131,30 @@ export default function CreateTask() {
 
     };
 
+    const getCreatorImage = async (uid: string | null) => {
+        const q = query(collection(firestore, 'Users'), where('Uid', "==", uid))
+        const documents = await getDocs(q);
+        if (!documents.empty) {
+            console.log(`Image url for the uid: ${uid} is ${documents.docs[0].data().ImageUrl}`);
+            return documents.docs[0].data().ImageUrl;
+        }
+        return ''; // Return a default value if image URL is not found
+    }
+
+    const getAssignieesImageUrls = async (uids: string[]) => {
+        const imageUrls = [];
+        for (const uid of uids) {
+            const q = query(collection(firestore, 'Users'), where('Uid', "==", uid))
+            const documents = await getDocs(q);
+            if (!documents.empty) {
+                console.log(`Image url for the uid: ${uid} is ${documents.docs[0].data().ImageUrl}`);
+                imageUrls.push(documents.docs[0].data().ImageUrl);
+            }
+        }
+
+        return imageUrls;
+    }
+
     const createTaskFunction = async () => {
 
         console.log('file objects are', fileObject);
@@ -154,11 +167,13 @@ export default function CreateTask() {
             'Heading': heading,
             'Description': description,
             'CreatedBy': uid,
-            'Deadline': deadline,
+            'Deadline': '',
             'CreatedAt': created_at,  // current date in dd/mm/yy format
             'Assignies': assignies,
             'Project': projectId,
-            'Files': fileObject  // associated files 
+            'Files': fileObject,  // associated files 
+            'CreatorImage': await getCreatorImage(uid),
+            'AssignieesImages': await getAssignieesImageUrls(assignies)
         };
 
         console.log('Task we are adding is', task);
@@ -271,7 +286,7 @@ export default function CreateTask() {
     const handleDateChange = (date: any) => {
         setDeadline(date);
         console.log('Selected Date type:', typeof date); // Log the selected date
-      };
+    };
 
     const handleDeleteFile = (fileName: string) => {
         // Create a copy of the fileObjectForView state
@@ -303,7 +318,7 @@ export default function CreateTask() {
                 <div className={styles.datepickerContainer}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
 
-                        <DatePicker className={styles.datepicker}     label="Select deadline" />
+                        <DatePicker className={styles.datepicker} label="Select deadline" />
 
                     </LocalizationProvider>
                 </div>
