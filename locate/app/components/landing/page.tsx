@@ -1,3 +1,4 @@
+
 'use client';
 // get the uid from the context and check for the Projects array and if their exist one or not 
 import { useGlobalUidContext } from "@/app/context/uid"
@@ -38,22 +39,19 @@ export default function landing() {
             try {
 
                 // Construct a reference to the collection
-                const collectionRef = collection(firestore, 'Users');
+                const collectionRef = query(collection(firestore, 'Users'), where('Uid', "==", uid));
+                const userdocs = await getDocs(collectionRef);
 
-                // Fetch all documents in the collection
-                const querySnapshot = await getDocs(collectionRef);
-
-                // Iterate through each document
-                querySnapshot.forEach((doc) => {
-                    // Get the data of the document
-                    const documentData = doc.data();
-
-
+                if (!userdocs.empty) {
+                    const documentData = userdocs.docs[0].data();
                     // Check if the 'Uid' field in the document matches the provided UID
                     if (documentData.Uid === uid) {
-                        // Return the document data
-                        if (documentData.Projects.length > 0) {
-                            setProjects(documentData.Projects);
+                        // // Return the document data
+                        // this condition is sick to figure out both for the creator of the project and the member of the project 
+                        if (documentData.Member === '') {
+                            if (documentData.Projects.length > 0) {
+                                setProjects(documentData.Projects);
+                            }
                         }
 
                         // get the Member variable check up
@@ -64,7 +62,8 @@ export default function landing() {
                             setProjectMember(Member);
                         }
                     }
-                });
+                }
+
 
 
             } catch (error) {
@@ -167,7 +166,7 @@ export default function landing() {
                         setSuccessfulJoinRequest(false);
                     }, 2000);
 
-                    
+
                 } else {
                     console.log('UID already exists in the requests array.');
                 }
