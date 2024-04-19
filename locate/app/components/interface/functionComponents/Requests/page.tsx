@@ -198,9 +198,9 @@ export default function Requests() {
                 <div className={styles.requests}>
                     {requestMembersData.map((userData, index) => (
                         <div key={userData.Uid} className={styles.requestMemberData}>
-                            <div className={styles.buttons}>
+                            <div className={styles.requestData}>
                                 <img src={userData.ImageUrl} style={{ width: 50, height: 50, border: 'none', 'borderRadius': '50%' }} alt={userData.Name} />
-                                <p>{userData.Name}</p>
+                                <p className={styles.requestName}>{userData.Name}</p>
                             </div>
                             <div className={styles.buttons}>
                                 <button className={styles.button} onClick={() => AcceptRequest(userData.Uid)}>Accept</button>

@@ -95,7 +95,7 @@ export default function Members({setOpenMessage, setMessageUid} : MemberFunction
                                     </div>
                                     <button onClick={ 
                                        () => AddMessageTab(user.Uid)
-                                        } className={styles.userChatButton}><FontAwesomeIcon icon={faMessage} /></button>
+                                        } className={styles.userChatButton}><img src="/Message.png"/> Message</button>
                                 </div>
                             ))}
                         </div> :

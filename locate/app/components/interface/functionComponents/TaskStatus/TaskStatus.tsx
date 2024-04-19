@@ -2,11 +2,11 @@
 'use client'
 import Image from 'next/image';
 import styles from './taskstatus.module.css';
-import { useEffect, useState } from 'react';
+import React, { Dispatch, useEffect, useState } from 'react';
 import { collection, onSnapshot, where, query, getDocs } from 'firebase/firestore';
-import { firestore } from '@/app/firebase'; // Import your Firestore instance
+import { firestore, storage } from '@/app/firebase'; // Import your Firestore instance
 import { useGlobalProjectIdContext } from '@/app/context/projectId';
-
+import { getDownloadURL, ref } from 'firebase/storage';
 interface documentStructure {
 
     id: string,
@@ -27,12 +27,20 @@ interface documentStructure {
     }
 }
 
-export default function TaskStatus() {
+interface TaskStatusProps {
+    setOpenTask: React.Dispatch<React.SetStateAction<boolean>>;
+    setTaskHeading: React.Dispatch<React.SetStateAction<string>>;
+    setTaskDocumentId: React.Dispatch<React.SetStateAction<string>>;
+}
+
+export default function TaskStatus({ setOpenTask, setTaskHeading, setTaskDocumentId }: TaskStatusProps) {
     // Define state to store the documents
     const [documents, setDocuments] = useState<documentStructure[]>([]);
     const { projectId } = useGlobalProjectIdContext();
     const [showFileDialog, setShowFileDialog] = useState(false);
     const [filesToShow, setFilesToShow] = useState<any>({});
+
+    const [currentDate, setCurrentDate] = useState('');
 
     useEffect(() => {
         // Reference to the Firestore collection you want to listen to
@@ -70,8 +78,23 @@ export default function TaskStatus() {
             return ''; // Return a default value if image URL is not found
         }
 
+        function getCurrentDate() {
+            const currentDate = new Date();
+            const day = String(currentDate.getDate()).padStart(2, '0');
+            const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+            const year = currentDate.getFullYear();
+
+            return `${day}/${month}/${year}`;
+        }
+
+
+
+
         // Return a cleanup function to unsubscribe from the listener when the component unmounts
-        return () => unsubscribe();
+        return () => {
+            unsubscribe();
+            setCurrentDate(getCurrentDate());
+        }
     }, [projectId]); // Add projectId to the dependency array
 
     const openFilesDialogs = (files: { [key: string]: string; }) => {
@@ -80,17 +103,25 @@ export default function TaskStatus() {
         setFilesToShow(files);
     }
 
-    // function to download the URL 
-    const downloadFile = (fileUrl: string) => {
-        // Create a temporary anchor element
-        const anchor = document.createElement('a');
-        anchor.href = fileUrl;
-        anchor.download = ''; // Set a default file name or get it from the server
-        anchor.click(); // Simulate a click event to trigger the download
+    const downloadFile = async (fileUrl: string) => {
+        console.log(fileUrl);
+        try {
+            const anchor = document.createElement('a');
+            anchor.href = fileUrl;
+            anchor.target = '_blank'; // Open in a new tab
+            
+            anchor.click();
+
+        } catch (error) {
+            console.error("Error downloading file:", error);
+        }
     }
-    
 
-
+    const setTaskValues = (taskHeading: string, documentId: string) => {
+        setOpenTask(true);
+        setTaskHeading(taskHeading);
+        setTaskDocumentId(documentId);
+    }
 
 
     // Now you can use the documents state to render your UI
@@ -107,7 +138,9 @@ export default function TaskStatus() {
                                 <h3>{document.data.Heading}</h3>
                                 <p>{document.data.Description}</p>
                             </div>
-                            <button className={styles.taskStatus}>{document.data.Status}</button>
+                            <button
+                                onClick={() => setTaskValues(document.data.Heading, document.id)}
+                                className={styles.taskStatus}>{document.data.Status}</button>
                         </div>
                         <div className={styles.bottomBar}>
 
@@ -128,7 +161,8 @@ export default function TaskStatus() {
                                 </div>
                                 <div className={styles.deadline}>
                                     <h4>Deadline</h4>
-                                    <p>{document.data.Deadline}</p>
+                                    <p className={new Date(currentDate) > new Date(document.data.Deadline) ? styles.invalidDate : styles.validDate}
+                                    >{document.data.Deadline}</p>
                                 </div>
                             </div>
                         </div>
@@ -141,14 +175,18 @@ export default function TaskStatus() {
                 <div className={styles.filesDialog}>
                     {/* showing files map with the download button with their names  */}
                     {Object.keys(filesToShow).length > 0 ?
-                        <div className={styles.filesColumn}>
-                            {Object.keys(filesToShow).map((fileName, index) => (
-                                <div key={index} className={styles.fileRow}>
-                                    <p>{fileName}</p>
-                                    <button onClick={() => downloadFile(filesToShow[fileName])}>Download</button>
-                                </div>
-                            ))}
-                        </div> :
+                        <div>
+                            <div className={styles.filesColumn}>
+                                {Object.keys(filesToShow).map((fileName, index) => (
+                                    <div key={index} className={styles.fileRow}>
+                                        <p className={styles.fileName}>{fileName}</p>
+                                        <button className={styles.downloadFileButton} onClick={() => downloadFile(filesToShow[fileName])}><img src="/download.png" /></button>
+                                    </div>
+                                ))}
+                            </div>
+                            <button onClick={() => setShowFileDialog(false)} className={styles.closeFileDialog}>Close</button>
+                        </div>
+                        :
                         <div>
                             <p>No files to show!</p>
                         </div>

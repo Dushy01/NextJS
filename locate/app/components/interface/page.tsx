@@ -11,18 +11,19 @@ import CreateTask from "./functionComponents/CreateTask/CreateTask";
 import Members from "./functionComponents/Members/Members";
 import Requests from "./functionComponents/Requests/page";
 import Chat from "./functionComponents/Members/Chat"
+import TaskDetails from "./functionComponents/TaskStatus/TaskDetails";
 import { useRouter } from "next/navigation";
 // import inviteViaEmail from "../../../../External/invite";
 import { FormControl, Select, MenuItem, InputLabel } from '@mui/material';
 // import mailgun from 'mailgun-js';
 import axios from 'axios';
 
-import { collection, where, query, getDocs, updateDoc, doc, getDoc } from "firebase/firestore";
+import { collection, where, query, getDocs, updateDoc, doc, getDoc, onSnapshot } from "firebase/firestore";
 import { firestore } from "@/app/firebase";
 
 export default function Interface() {
 
-    
+
 
     const router = useRouter();
 
@@ -33,13 +34,24 @@ export default function Interface() {
     const [openProfile, setOpenProfile] = useState<boolean>(false);
     const [showShare, setshowShare] = useState<boolean>(false);
     const [successfulInvite, setSuccessfulInviteUser] = useState<boolean>(false);
-    
+
 
 
     const [openMessage, setOpenMessage] = useState<boolean>(false);
     const [messageUid, setMessageUid] = useState('');
     const [messageImageUrl, setMessagUserImageUrl] = useState<string>('');
     const [messageName, setMessageUserName] = useState<string>('');
+    const [messageUserStatus, setMessageUserStatus] = useState<boolean>(false);
+
+    // for the task status 
+    const [openTask, setOpenTask] = useState(false);
+    const [taskHeading, setTaskHeading] = useState('');
+    const [taskDocumentId, setTaskDocumentId] = useState('');
+    const RemoveTask = () => {
+        setTaskHeading('');
+        setOpenTask(false);
+        setTaskDocumentId('')
+    }
 
     const RemoveMessage = () => {
         setOpenMessage(false);
@@ -67,21 +79,78 @@ export default function Interface() {
 
         checkForMember();
 
-        // getting the user data for the message for the messageUid
-        const getMessaeUidData = async () => {
-            if (messageUid != '') {
-                const q = query(collection(firestore, 'Users'), where('Uid', "==", messageUid))
-                const documents = await getDocs(q);
-                if (!documents.empty) {
-                    const userDoc = documents.docs[0];
-                    const userDocData = userDoc.data();
+        // Function to fetch user data and listen for user status
+        const fetchUserDataAndListenStatus = async () => {
+            if (messageUid !== '') {
+                // Query to get user data
+                const userDataQuery = query(collection(firestore, 'Users'), where('Uid', '==', messageUid));
+
+                // Subscribe to real-time updates for user status
+                const statusUnsubscribe = onSnapshot(userDataQuery, (snapshot) => {
+                    snapshot.docChanges().forEach((change) => {
+                        if (change.type === 'modified') {
+                            const userData = change.doc.data();
+                            setMessageUserStatus(userData.Status);
+                        }
+                    });
+                });
+
+                // Get user data
+                const userDataDocs = await getDocs(userDataQuery);
+                if (!userDataDocs.empty) {
+                    const userDocData = userDataDocs.docs[0].data();
                     setMessageUserName(userDocData.Name);
                     setMessagUserImageUrl(userDocData.ImageUrl);
                 }
-            }
-        }
 
-        getMessaeUidData();
+                // Return an object with unsubscribe functions for cleanup
+                return {
+                    statusUnsubscribe
+                };
+            }
+        };
+
+        fetchUserDataAndListenStatus();
+
+
+        // // getting the user data for the message for the messageUid
+        // const getMessaeUidData = async () => {
+        //     if (messageUid != '') {
+        //         const q = query(collection(firestore, 'Users'), where('Uid', "==", messageUid))
+        //         const documents = await getDocs(q);
+        //         if (!documents.empty) {
+        //             const userDoc = documents.docs[0];
+        //             const userDocData = userDoc.data();
+        //             setMessageUserName(userDocData.Name);
+        //             setMessagUserImageUrl(userDocData.ImageUrl);
+        //         }
+        //     }
+        // }
+
+
+        // // Function to listen for the user status 
+        // const messageUserStatusListen = async () => {
+        //     const q = query(collection(firestore, 'User'), where('Uid', '==', messageUid));
+
+        //     // Subscribe to real-time updates
+        //     const unsubscribe = onSnapshot(q, (snapshot) => {
+        //         snapshot.docChanges().forEach((change) => {
+        //             if (change.type === 'modified') {
+        //                 // Get the updated user document data
+        //                 const userData = change.doc.data();
+        //                 // Update the message user status
+        //                 setMessageUserStatus(userData.Status);
+        //             }
+        //         });
+        //     });
+
+        //     // Return the unsubscribe function to stop listening when needed
+        //     return unsubscribe;
+        // }
+
+
+        // getMessaeUidData();
+        // messageUserStatusListen();
     }, [messageUid]);
 
     const changeShare = () => {
@@ -153,7 +222,7 @@ export default function Interface() {
 
     };
 
-  
+
 
 
 
@@ -247,7 +316,7 @@ export default function Interface() {
                             </button>
                     }
 
-                    /* setting button for the profile changes and what ever */
+                    
                     <button
                         className={`${styles.SettingButton}`}
                         onClick={OpenProfile}
@@ -264,44 +333,64 @@ export default function Interface() {
                 {/* conditional rendering of the headerbox  */}
 
                 {
-                    openMessage ?
+                    openMessage ? (
                         <div className={styles.messageHeader}>
                             { /* show the profile header for the user */}
                             <div className={styles.messageHeaderStatus}>
-                                <button onClick={RemoveMessage}>Back</button>
+                                <button className={styles.backButton} onClick={RemoveMessage}><img src="/Back.png" alt="Back image" /></button>
                                 <div className={styles.messageHeaderData}>
-                                    <img className={styles.messageImage} src={messageImageUrl} alt="message user image" />
-                                    <p>{messageName}</p>
+                                    <div className={styles.messageUserStatus}>
+                                        <img className={styles.messageImage} src={messageImageUrl} alt="message user image" />
+
+                                        <div className={`${messageUserStatus ? styles.activeMessageUser : styles.inactiveMessageUser}`}></div>
+                                    </div>
+                                    <p className={styles.messageUserName}>{messageName}</p>
                                 </div>
                             </div>
-                        </div> :
+
+
+                        </div>) : openTask ? (
+                            <div className={styles.messageHeaderStatus}>
+                                <button className={styles.backButton} onClick={RemoveTask}><img src="/Back.png" alt="Back image" /></button>
+                                <div className={styles.messageHeaderData}>
+                                    {/* here we would pass down the heading of the task to show  */}
+                                    <p className={styles.taskHeadingText}>{taskHeading}</p>
+                                </div>
+                            </div>) :
                         <div className={styles.headerBar}>
                             <button className={styles.ShareButton}
                                 onClick={changeShare}
                             >Share
-                               <img src="/Share.png" alt="share icon"/>
+                                <img src="/Share.png" alt="share icon" />
                             </button>
                         </div>
+
                 }
 
 
                 <div style={{ padding: 10 }}>
                     {
-                        openMessage ?
+                        openMessage ? (
                             <div>
                                 {/* showing the chat message box  */}
                                 <Chat setOpenMessage={setOpenMessage} openMessage={false} messageUid={messageUid} />
-                            </div>
-                            :
-                            <div>
-                                {/* here the component should be rendered  */}
-                                {currentComponent === 'Create task' && <CreateTask />}
-                                {currentComponent === 'Task status' && <TaskStatus />}
-                                {currentComponent === 'Members' && <Members setOpenMessage={setOpenMessage} openMessage={false} setMessageUid={setMessageUid} />}
-                                {/* this should be load conditionally */}
+                            </div>) :
+                            openTask ? (
+                                // component to show the task details 
+                                <div>
+                                    <TaskDetails taskDocumentId={taskDocumentId} />
+                                </div>
+                            )
+                                :
+                                <div>
+                                    {/* here the component should be rendered  */}
+                                    {currentComponent === 'Create task' && <CreateTask />}
+                                    {currentComponent === 'Task status' && <TaskStatus setOpenTask={setOpenTask} setTaskHeading={setTaskHeading} setTaskDocumentId={setTaskDocumentId} />}
+                                    {currentComponent === 'Members' && <Members setOpenMessage={setOpenMessage} openMessage={false} setMessageUid={setMessageUid} />}
+                                    {/* this should be load conditionally */}
 
-                                {currentComponent === 'Requests' && <Requests />}
-                            </div>
+                                    {currentComponent === 'Requests' && <Requests />}
+                                </div>
                     }
                 </div>
             </div>

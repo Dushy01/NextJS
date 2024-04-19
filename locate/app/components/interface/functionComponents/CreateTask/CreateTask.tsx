@@ -161,6 +161,11 @@ export default function CreateTask() {
         console.log('assignies are', assignies);
 
         const created_at = getCurrentDate();
+        // construct the map
+        const assigneeMap: { [key: string] : boolean} = {};
+        for (const assigneeId of assignies) {
+            assigneeMap[assigneeId] = false;
+        }
 
         // code to create the task 
         const task = {
@@ -169,7 +174,7 @@ export default function CreateTask() {
             'CreatedBy': uid,
             'Deadline': '',
             'CreatedAt': created_at,  // current date in dd/mm/yy format
-            'Assignies': assignies,
+            'Assignies': assigneeMap,
             'Project': projectId,
             'Files': fileObject,  // associated files 
             'CreatorImage': await getCreatorImage(uid),
