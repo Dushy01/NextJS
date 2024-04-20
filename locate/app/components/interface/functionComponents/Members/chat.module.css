@@ -6,6 +6,7 @@
     align-items: center;
     gap: 10px;
     margin-top: 10px;
+    backdrop-filter: blur(10px);
 }
 
 .sendChatButton
@@ -75,7 +76,7 @@
 {
     background-color: black;
     color: white;
-    width: fit-content;
+    width: 200px;
     height: fit-content;
     padding: 10px;
     border: none;
@@ -85,7 +86,7 @@
     font-weight: 100;
     position: relative;
     text-align: right;
-    margin-left: 1000px;
+    margin-left: 900px;
    
 }
 
@@ -94,7 +95,7 @@
     background-color: #dbdbdb74;
     color: black;
     text-align: left;
-    width: fit-content;
+    width: 200px;
     height: fit-content;
     padding: 10px;
     border: none;
@@ -108,8 +109,16 @@
     display: flex;
     flex-direction: row;
     gap: 10px;
-    justify-content: center;
-    align-items: last baseline;
+}
+
+.myChatMessageData
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    align-items: center;
+    gap: 10px;
+    margin-top: -10px;
 }
 
 .otherPersonImage
@@ -118,4 +127,5 @@
     height: 20px;
     border: none;
     border-radius: 50%;
+    margin-top: -10px;
 }

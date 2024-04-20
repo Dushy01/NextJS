@@ -92,6 +92,11 @@ export default function Interface() {
                             const userData = change.doc.data();
                             setMessageUserStatus(userData.Status);
                         }
+                        // if not modified then get the back value of the status which already exist
+                        else {
+                            const userData = change.doc.data();
+                            setMessageUserStatus(userData.Status);
+                        }
                     });
                 });
 
@@ -113,44 +118,6 @@ export default function Interface() {
         fetchUserDataAndListenStatus();
 
 
-        // // getting the user data for the message for the messageUid
-        // const getMessaeUidData = async () => {
-        //     if (messageUid != '') {
-        //         const q = query(collection(firestore, 'Users'), where('Uid', "==", messageUid))
-        //         const documents = await getDocs(q);
-        //         if (!documents.empty) {
-        //             const userDoc = documents.docs[0];
-        //             const userDocData = userDoc.data();
-        //             setMessageUserName(userDocData.Name);
-        //             setMessagUserImageUrl(userDocData.ImageUrl);
-        //         }
-        //     }
-        // }
-
-
-        // // Function to listen for the user status 
-        // const messageUserStatusListen = async () => {
-        //     const q = query(collection(firestore, 'User'), where('Uid', '==', messageUid));
-
-        //     // Subscribe to real-time updates
-        //     const unsubscribe = onSnapshot(q, (snapshot) => {
-        //         snapshot.docChanges().forEach((change) => {
-        //             if (change.type === 'modified') {
-        //                 // Get the updated user document data
-        //                 const userData = change.doc.data();
-        //                 // Update the message user status
-        //                 setMessageUserStatus(userData.Status);
-        //             }
-        //         });
-        //     });
-
-        //     // Return the unsubscribe function to stop listening when needed
-        //     return unsubscribe;
-        // }
-
-
-        // getMessaeUidData();
-        // messageUserStatusListen();
     }, [messageUid]);
 
     const changeShare = () => {

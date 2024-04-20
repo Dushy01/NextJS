@@ -13,6 +13,7 @@ interface messageDoc {
         MessageText: string;
         Timestamp: string;
         Status: boolean;
+        Date: string;
     }
 }
 
@@ -21,7 +22,7 @@ import styles from './chat.module.css';
 import { useGlobalUidContext } from "@/app/context/uid";
 import { useGlobalProjectIdContext } from "@/app/context/projectId";
 import { firestore } from "@/app/firebase";
-import { collection, addDoc, onSnapshot, getDocs, query, where } from "firebase/firestore";
+import { collection, addDoc, onSnapshot, getDocs, query, where, updateDoc, doc } from "firebase/firestore";
 import Image from "next/image";
 
 
@@ -31,9 +32,19 @@ export default function Chat({ setOpenMessage, messageUid }: MemberFunctionProps
     const [messageText, setMessaeText] = useState<string>('');
     const [chatMessages, setChatMessages] = useState<messageDoc[]>([]);
     const [otherPersonImageUrl, setOtherPersonImageUrl] = useState('');
+    const [shouldScrollToBottom, setShouldScrollToBottom] = useState<boolean>(false);
 
 
     const messageBoxRef = useRef<HTMLDivElement>(null);
+
+    const scrollToBottom = () => {
+        const messageBox = messageBoxRef.current;
+        if (messageBox) {
+            messageBox.scrollTop = messageBox.scrollHeight;
+        }
+    };
+
+    
     useEffect(() => {
         // Set up listener for real-time updates to chat messages
         const unsubscribe = onSnapshot(collection(firestore, 'Chats'), (snapshot) => {
@@ -44,7 +55,9 @@ export default function Chat({ setOpenMessage, messageUid }: MemberFunctionProps
                     docData: doc.data() as messageDoc['docData']
                 });
             });
+            messages.sort((a, b) => new Date(b.docData.Date).getTime() - new Date(a.docData.Date).getTime());
             setChatMessages(messages);
+            scrollToBottom();
         });
 
         const getOtherPersonImageUrl = async () => {
@@ -68,6 +81,7 @@ export default function Chat({ setOpenMessage, messageUid }: MemberFunctionProps
                 if (rect.top >= 0 && rect.bottom <= window.innerHeight * 1.5) {
                     // Message is at least 50% visible
                     const messageId = (message as HTMLElement).dataset.messageId;
+                    console.log('listening for the scroll event with the messageId', messageId);
                     if (messageId) {
                         const messageData = chatMessages.find((msg) => msg.messageDocId === messageId);
                         if (messageData && !messageData.docData.Status && messageData.docData.From !== uid) {
@@ -82,6 +96,8 @@ export default function Chat({ setOpenMessage, messageUid }: MemberFunctionProps
         // Attach scroll event listener to the message box
         messageBox.addEventListener('scroll', handleScroll);
 
+        
+
 
 
         // Clean up the listener when component unmounts
@@ -89,11 +105,14 @@ export default function Chat({ setOpenMessage, messageUid }: MemberFunctionProps
             unsubscribe();
             getOtherPersonImageUrl();
             messageBox.removeEventListener('scroll', handleScroll);
+          
         };
     }, [chatMessages]); // Empty dependency array to run only once when component mounts
 
-    const markMessageAsSeen = (messageId: string) => {
-
+    const markMessageAsSeen = async (messageId: string) => {
+        console.log('changing the message seen for the message doc id is', messageId);
+        const docRef = doc(firestore, 'Chats', messageId);
+        await updateDoc(docRef, {Status: true});
     };
 
     function getCurrentDate() {
@@ -127,6 +146,7 @@ export default function Chat({ setOpenMessage, messageUid }: MemberFunctionProps
             const collectionRef = collection(firestore, 'Chats');
             await addDoc(collectionRef, messageData);
             setMessaeText('');
+            
         }
     };
 
@@ -135,10 +155,12 @@ export default function Chat({ setOpenMessage, messageUid }: MemberFunctionProps
         <main className={styles.body}>
             <div className={styles.messageBox} ref={messageBoxRef} id="messageBox">
                 {/* apply messages here  */}
-                {chatMessages.map((message) => (
+                {chatMessages.map((message, index) => (
+                   
                     <div key={message.messageDocId} className={`${message.docData.From === uid ? styles.myMessage : styles.otherMessage}`} id={message.messageDocId}>
+                        
                         <p>{message.docData.MessageText}</p>
-                        <div className={styles.chatMessageData}>
+                        <div className={`${message.docData.From === uid ? styles.myChatMessageData : styles.chatMessageData}`}>
                             <p>{message.docData.Timestamp}</p>
 
                             {message.docData.Status && message.docData.From == uid ? <img className={styles.otherPersonImage} src={otherPersonImageUrl} alt="Other person image" /> : ''}
