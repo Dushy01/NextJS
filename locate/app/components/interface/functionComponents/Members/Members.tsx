@@ -25,7 +25,7 @@ interface MemberFunctionProps {
 
 export default function Members({setOpenMessage, setMessageUid} : MemberFunctionProps) {
     const { projectId } = useGlobalProjectIdContext();
-    const { } = useGlobalUidContext();
+    const { uid } = useGlobalUidContext();
     const [users, setUsers] = useState<userData[]>([]);
 
     useEffect(() => {
@@ -35,8 +35,9 @@ export default function Members({setOpenMessage, setMessageUid} : MemberFunction
             getDoc(docRef).then((document) => {
                 if (document.exists()) {
                     const memberIds = document.data().members || [];
+                    const filteredMemberIds = memberIds.filter((memberId: any) => memberId !== uid);
                     const userDataList: userData[] = [];
-                    memberIds.forEach((ids: string) => {
+                    filteredMemberIds.forEach((ids: string) => {
                         const memberQuery = query(collection(firestore, 'Users'), where('Uid', "==", ids))
                         onSnapshot(memberQuery, (querySnapshot) => {
                             querySnapshot.forEach((doc) => {

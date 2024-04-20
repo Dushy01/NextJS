@@ -46,13 +46,13 @@ export default function landing() {
                     const documentData = userdocs.docs[0].data();
                     // Check if the 'Uid' field in the document matches the provided UID
                     if (documentData.Uid === uid) {
-                        // // Return the document data
-                        // this condition is sick to figure out both for the creator of the project and the member of the project 
-                        if (documentData.Member === '') {
-                            if (documentData.Projects.length > 0) {
-                                setProjects(documentData.Projects);
-                            }
+
+                        
+
+                        if (documentData.Projects.length > 0) {
+                            setProjects(documentData.Projects);
                         }
+
 
                         // get the Member variable check up
                         const Member = documentData.Member;

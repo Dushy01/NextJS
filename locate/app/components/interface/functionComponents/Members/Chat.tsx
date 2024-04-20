@@ -32,7 +32,7 @@ export default function Chat({ setOpenMessage, messageUid }: MemberFunctionProps
     const [chatMessages, setChatMessages] = useState<messageDoc[]>([]);
     const [otherPersonImageUrl, setOtherPersonImageUrl] = useState('');
 
-    
+
     const messageBoxRef = useRef<HTMLDivElement>(null);
     useEffect(() => {
         // Set up listener for real-time updates to chat messages
@@ -53,7 +53,7 @@ export default function Chat({ setOpenMessage, messageUid }: MemberFunctionProps
             if (!usersDocs.empty) {
                 const userImage = usersDocs.docs[0].data().ImageUrl;
                 setOtherPersonImageUrl(userImage);
-                
+
             }
         }
 
@@ -77,12 +77,12 @@ export default function Chat({ setOpenMessage, messageUid }: MemberFunctionProps
                 }
             });
         };
-        
+
 
         // Attach scroll event listener to the message box
         messageBox.addEventListener('scroll', handleScroll);
 
-        
+
 
         // Clean up the listener when component unmounts
         return () => {
@@ -93,10 +93,17 @@ export default function Chat({ setOpenMessage, messageUid }: MemberFunctionProps
     }, [chatMessages]); // Empty dependency array to run only once when component mounts
 
     const markMessageAsSeen = (messageId: string) => {
-        
+
     };
 
-    
+    function getCurrentDate() {
+        const currentDate = new Date();
+        const day = String(currentDate.getDate()).padStart(2, '0');
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Month is zero-based, so we add 1
+        const year = String(currentDate.getFullYear()).slice(2); // Get last two digits of the year
+
+        return `${day}/${month}/${year}`;
+    }
 
     const sendMessage = async () => {
         if (messageText.trim() !== "") {
@@ -105,13 +112,16 @@ export default function Chat({ setOpenMessage, messageUid }: MemberFunctionProps
             const minutes = String(currentTime.getMinutes()).padStart(2, '0');
             const formattedTime = `${hours}:${minutes}`;
 
+            const currentDate = getCurrentDate() // function to get current date
+
             // Add the message
             const messageData = {
                 'From': uid,
                 'To': messageUid,
                 'MessageText': messageText.trim(),
                 'Timestamp': formattedTime,
-                'Status': false
+                'Status': false,
+                'Date': currentDate
             };
 
             const collectionRef = collection(firestore, 'Chats');
@@ -130,7 +140,7 @@ export default function Chat({ setOpenMessage, messageUid }: MemberFunctionProps
                         <p>{message.docData.MessageText}</p>
                         <div className={styles.chatMessageData}>
                             <p>{message.docData.Timestamp}</p>
-                           
+
                             {message.docData.Status && message.docData.From == uid ? <img className={styles.otherPersonImage} src={otherPersonImageUrl} alt="Other person image" /> : ''}
                         </div>
                     </div>

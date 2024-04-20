@@ -318,7 +318,7 @@ export default function Interface() {
 
                     
                     <button
-                        className={`${styles.SettingButton}`}
+                        className={`${isProjectMember ? styles.SettingButtonExtra : styles.SettingButton}`}
                         onClick={OpenProfile}
                     >
                         <img src="/Settings.png" alt="Setting icon" />
