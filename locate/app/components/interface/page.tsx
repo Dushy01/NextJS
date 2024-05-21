@@ -42,6 +42,12 @@ export default function Interface() {
     const [messageImageUrl, setMessagUserImageUrl] = useState<string>('');
     const [messageName, setMessageUserName] = useState<string>('');
     const [messageUserStatus, setMessageUserStatus] = useState<boolean>(false);
+    const [showDeleteButton, setShowDeleteButton] = useState<boolean>(false); // to hide and show the delete button for the message header
+    const changeDeleteButtonShow = () => {
+        setShowDeleteButton(!showDeleteButton)
+    }
+    // to hold the function that i am going to call for the deletion of the chat
+    const [deleteFunction, setDeleteFunction] = useState<(() => void) | undefined>(undefined);
 
     // for the task status 
     const [openTask, setOpenTask] = useState(false);
@@ -283,7 +289,7 @@ export default function Interface() {
                             </button>
                     }
 
-                    
+
                     <button
                         className={`${isProjectMember ? styles.SettingButtonExtra : styles.SettingButton}`}
                         onClick={OpenProfile}
@@ -313,6 +319,13 @@ export default function Interface() {
                                     </div>
                                     <p className={styles.messageUserName}>{messageName}</p>
                                 </div>
+                                {/* delete button to delete the selected chat with a click of a button */}
+                                {
+                                    showDeleteButton ?
+                                        <button className={styles.deleteButton} onClick={deleteFunction}><img src="/Delete.png" alt="Delete image" /></button>
+                                        :
+                                        <div></div>
+                                }
                             </div>
 
 
@@ -340,7 +353,7 @@ export default function Interface() {
                         openMessage ? (
                             <div>
                                 {/* showing the chat message box  */}
-                                <Chat setOpenMessage={setOpenMessage} openMessage={false} messageUid={messageUid} />
+                                <Chat setOpenMessage={setOpenMessage} openMessage={false} messageUid={messageUid} changeDeleteButtonShow={changeDeleteButtonShow} onDelete={setDeleteFunction} />
                             </div>) :
                             openTask ? (
                                 // component to show the task details 
@@ -396,16 +409,28 @@ export default function Interface() {
             {openProfile &&
                 <div className={styles.showProfile} >
                     <div className={styles.profileDescriptionHeader}>
+
                         <div className={styles.profile}>
                             <img src={imageUrl} alt="profle image" className={styles.profileImage} />
                             <p className={styles.projectName} style={{ color: 'white' }}>{projectName}</p>
                         </div>
+
+
                         <button className={styles.cancelButtons} onClick={() => setOpenProfile(false)}>Close</button>
                     </div>
 
                     {/* content for the profile component */}
-                    <div>
-
+                    <div className={styles.userFunctions}>
+                        <div className={styles.userFunctionDetails}>
+                            <div className={styles.userFunctionsNames}>
+                                <p style={{ marginTop: 10 }} className={styles.userFunctionName}>Tasks</p>
+                                <p style={{ marginTop: 10 }} className={styles.userFunctionName}>Projects</p>
+                            </div>
+                            <div className={styles.userFunctionsButtons}>
+                                <button className={styles.showList}>Open</button>
+                                <button className={styles.showList}>Open</button>
+                            </div>
+                        </div>
                     </div>
 
                     <button onClick={() => leaveProject()} className={styles.leaveProject}>Leave Project</button>

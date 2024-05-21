@@ -470,3 +470,65 @@
     justify-content: left;
     align-items: last baseline;
 }
+
+.userFunctions
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.userFunctionDetails
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 25px;
+}
+
+.userFunctionName
+{
+    font-family: 'ReadexPro';
+    font-size: 20px;
+    font-weight: 400;
+    color: white;
+}
+
+.showList
+{
+    width: 150px;
+    height: 50px;
+    background-color: white;
+    border: none;
+    border-radius: 5px;
+    font-family: 'ReadexPro';
+    color: black;
+}
+
+.userFunctionsNames
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    align-items: flex-start;
+    gap: 5px;
+}
+
+.userFunctionsButtons
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: right;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.deleteButton
+{
+    background-color: transparent;
+    border: none;
+}

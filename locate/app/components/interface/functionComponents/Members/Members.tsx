@@ -10,6 +10,8 @@ import styles from './members.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMessage } from '@fortawesome/free-solid-svg-icons';
 
+
+
 interface userData {
     Name: string;
     ImageUrl: string;
@@ -23,7 +25,7 @@ interface MemberFunctionProps {
     openMessage: boolean;
 }
 
-export default function Members({setOpenMessage, setMessageUid} : MemberFunctionProps) {
+export default function Members({ setOpenMessage, setMessageUid }: MemberFunctionProps) {
     const { projectId } = useGlobalProjectIdContext();
     const { uid } = useGlobalUidContext();
     const [users, setUsers] = useState<userData[]>([]);
@@ -82,6 +84,7 @@ export default function Members({setOpenMessage, setMessageUid} : MemberFunction
         <main>
             <div>
                 {/* loading the user data */}
+
                 {
                     users.length > 0 ?
                         <div className={styles.members}>
@@ -94,16 +97,18 @@ export default function Members({setOpenMessage, setMessageUid} : MemberFunction
                                         </div>
                                         <p className={styles.userName}>{user.Name}</p>
                                     </div>
-                                    <button onClick={ 
-                                       () => AddMessageTab(user.Uid)
-                                        } className={styles.userChatButton}><img src="/Message.png"/> Message</button>
+                                    <button onClick={
+                                        () => AddMessageTab(user.Uid)
+                                    } className={styles.userChatButton}><img src="/Message.png" /> Message</button>
                                 </div>
                             ))}
                         </div> :
                         <div>
                             <p>No Member exist yet!</p>
+                            
                         </div>
                 }
+
             </div>
         </main>
     );
