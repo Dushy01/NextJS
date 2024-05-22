@@ -5,7 +5,7 @@ import { useGlobalUidContext } from "@/app/context/uid"
 import styles from './interface.module.css'
 import { useState, useEffect } from "react";
 import Image from "next/image"
-
+import TaskList from './TaskList';
 import TaskStatus from "./functionComponents/TaskStatus/TaskStatus";
 import CreateTask from "./functionComponents/CreateTask/CreateTask";
 import Members from "./functionComponents/Members/Members";
@@ -65,6 +65,10 @@ export default function Interface() {
         setMessagUserImageUrl('');
         setMessageUserName('');
     }
+
+
+    // state hook to show the task list component
+    const [showTaskList, setShowTaskList] = useState<boolean>(false);
 
 
     // use the useEffect to cross check if the user is a member or creator of the project
@@ -427,7 +431,7 @@ export default function Interface() {
                                 <p style={{ marginTop: 10 }} className={styles.userFunctionName}>Projects</p>
                             </div>
                             <div className={styles.userFunctionsButtons}>
-                                <button className={styles.showList}>Open</button>
+                                <button className={styles.showList} onClick={() => setShowTaskList(true)}>Open</button> {/* to show the task list as a component */}
                                 <button className={styles.showList}>Open</button>
                             </div>
                         </div>
@@ -437,12 +441,17 @@ export default function Interface() {
                 </div>
             }
 
+            {/* show the Task list profile */}
+            {showTaskList &&  <TaskList setShowTaskList={setShowTaskList}/>}
+
             {successfulInvite &&
                 <div className={`${successfulInvite} ? ${styles.successfullyInvited} : ' '`}>
                     <img src="/invite.png" alt="Successful invite icon" />
                     <p>Successfully invited</p>
                 </div>
             }
+
+
 
 
 
