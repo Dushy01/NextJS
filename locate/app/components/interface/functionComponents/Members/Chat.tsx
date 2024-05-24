@@ -248,6 +248,7 @@ export default function Chat({ setOpenMessage, messageUid, changeDeleteButtonSho
 
             {/* message input box  */}
             <div className={styles.messageinputBox}>
+              
                 <input type="text" className={styles.chatMessageInput} value={messageText} placeholder="Type message..." onChange={(e) => setMessaeText(e.target.value)} />
                 <button className={styles.sendChatButton} onClick={sendMessage}><img src="/Send.png" alt="send button icon" /></button>
             </div>

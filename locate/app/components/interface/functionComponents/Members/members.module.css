@@ -1,4 +1,4 @@
-.members
+/* .members
 {
     display: flex;
     flex-direction: column;
@@ -87,4 +87,208 @@
     
     justify-content: center;
     align-items: center;
+} */
+
+.members
+{
+    display: flex;
+    flex-direction: column;
+    
+    gap: 10px;
+    height: 100%;
+    max-height: 100%;
+    overflow-y: hidden;
+    scroll-behavior: auto;
+}
+
+.members::-webkit-scrollbar
+{
+    display: none;
+}
+
+
+.ChatInterface
+{
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    overflow-y: hidden;
+    height: 100%;
+    max-height: 100%;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+.LeftContainer
+{
+    width: 20%;
+    height: 100%;
+    border-right: 1px solid rgba(0, 0, 0, 0.25);
+    height: 84vh;
+    overflow-y: hidden;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+}
+
+
+
+.activeChat
+{
+    background-color: #F2F2F2;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.active{
+    width: 15px;
+    height: 15px;
+    border: none;
+    border-radius: 50%;
+    background-color: rgb(87, 255, 87);
+    margin-left: -10px;
+}
+
+.inactive {
+    width: 15px;
+    height: 15px;
+    border: none;
+    border-radius: 50%;
+    background-color: rgb(223, 222, 222);;
+    margin-left: -10px;
+}
+
+.userImage
+{
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+    z-index: 999;
+}
+
+
+.MemberRow
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items:  center;
+    gap: 25px;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.memberData
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items:  center;
+    gap: 25px;
+    
+  
+}
+
+.userStatusRow
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    align-items: last baseline;
+    
+}
+
+.userName
+{
+    font-family: 'ReadexPro';
+    font-size: 14px;
+    font-weight: 400;
+    margin-top: 15px;
+    color: rgba(0, 0, 0, 0.435);
+}
+
+
+.chatButton
+{
+    border: none;
+    width: 100%;
+    height: 50px;
+    font-family: 'ReadexPro';
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.RightContainer
+{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.chatBox
+{
+    height: 90%;
+    max-height: 90%;
+    overflow-y: auto;
+    scroll-behavior: auto;
+}
+
+
+
+.chatBox::-webkit-scrollbar
+{
+    display: none;
+}
+
+.chatInput
+{
+    height: 10%;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    max-width: 100%;
+}
+
+.chatMessageInputBox
+{
+    width: 95%;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    border-radius: 5px;
+    padding-left: 10px;
+    font-family: 'ReadexPro';
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.chatMessageInputBox::placeholder
+{
+    font-family: 'ReadexPro';
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.chatMessageInputBox:focus
+{
+    outline: none;
+}
+
+.sendChatButton
+{
+    width: 100px;
+    border: 1px solid rgba(0, 0, 0, 0.25);
+    background-color: transparent;
+    text-align: center;
+    font-family: 'ReadexPro';
+}
+
+.sendChatButton:focus
+{
+    outline: none;
+}
+
+.chatMessageReference
+{
+    display: flex;
+    
 }
