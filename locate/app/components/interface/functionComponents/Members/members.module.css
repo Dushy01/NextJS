@@ -1,93 +1,4 @@
-/* .members
-{
-    display: flex;
-    flex-direction: column;
-    
-    gap: 10px;
-    height: 400px;
-    max-height: 400px;
-    overflow-y: auto;
-    scroll-behavior: auto;
-}
 
-.members::-webkit-scrollbar
-{
-    display: none;
-}
-
-.MemberRow
-{
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items:  center;
-    gap: 25px;
-}
-
-.memberData
-{
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: center;
-    gap: 25px;
-}
-
-.userStatusRow
-{
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-items: last baseline;
-    
-}
-
-.userName
-{
-    font-family: 'ReadexPro';
-    font-size: 18px;
-    font-weight: 600;
-}
-
-.userImage
-{
-    width: 40px;
-    height: 40px;
-    border: none;
-    border-radius: 50%;
-    z-index: 999;
-}
-
-.active{
-    width: 20px;
-    height: 20px;
-    border: none;
-    border-radius: 50%;
-    background-color: rgb(87, 255, 87);
-    margin-left: -10px;
-}
-
-.inactive {
-    width: 20px;
-    height: 20px;
-    border: none;
-    border-radius: 50%;
-    background-color: rgb(178, 178, 178);;
-    margin-left: -10px;
-}
-
-.userChatButton
-{
-    font-family: 'ReadexPro';
-    border: 1px solid rgba(0, 0, 0, 0.51);
-    border-radius: 5px;
-    display: flex;
-    flex-direction: row;
-    background-color: transparent;
-    
-    justify-content: center;
-    align-items: center;
-} */
 
 .members
 {
@@ -111,10 +22,10 @@
 {
     width: 100%;
     max-width: 100%;
-    overflow: hidden;
+  
     display: flex;
     flex-direction: row;
-    overflow-y: hidden;
+    overflow: hidden;
     height: 100%;
     max-height: 100%;
     padding: 0;
@@ -224,6 +135,7 @@
 {
     width: 100%;
     display: flex;
+    overflow: hidden;
     flex-direction: column;
 }
 
@@ -231,8 +143,23 @@
 {
     height: 90%;
     max-height: 90%;
-    overflow-y: auto;
+    overflow-y: hidden;
     scroll-behavior: auto;
+}
+
+
+
+.chatReferenceCreated
+{
+    height: 80%;
+    max-height: 80%;
+    overflow-y: hidden;
+    scroll-behavior: auto;
+}
+
+.chatReferenceCreated::-webkit-scrollbar
+{
+    display: none;
 }
 
 
@@ -251,9 +178,19 @@
     max-width: 100%;
 }
 
+.chatInputReference
+{
+    height: 20%;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    max-width: 100%;
+}
+
 .chatMessageInputBox
 {
-    width: 95%;
+    width: 800px;
+    height: 50px;
     border: 1px solid rgba(0, 0, 0, 0.25);
     border-radius: 5px;
     padding-left: 10px;
@@ -287,8 +224,254 @@
     outline: none;
 }
 
+
+/* reference manager */
 .chatMessageReference
 {
     display: flex;
+    flex-direction: column;
+}
+
+.referenceData
+{
+    display: flex;
+    flex-direction: column;
+    justify-content: left;
+    padding-left: 10px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.referenceDiv
+{
+    background-color: #FFF3F3;
+    z-index: 999;
+    height: 50%;
+
+    display: flex;
+    flex-direction: row;
+    gap: 561px;
+}
+
+
+.referenceTaskName
+{
+    font-family: 'ReadexPro';
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.referenceTaskId
+{
+    font-family: 'ReadexPro';
+    font-size: 10px;
+    margin-top: -20px;
+    color: rgba(0, 0, 0, 0.5);
+}
+
+.cancelReferenceButton
+{
+    background-color: black;
+    border: none;
+    width: 50px;
+}
+
+.cancelReferenceButton:focus
+{
+    outline: none;
+}
+
+/* Designing the styles for the group chat messages */
+.dateHeader
+{
+    text-align: center;
+    font-family: 'ReadexPro';
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.myMessage
+{
+    background-color: black;
+    color: white;
+    width: 250px;
+    height: fit-content;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    border-top-right-radius: 0px;
+    font-family: 'ReadexPro';
+    font-weight: 100;
+    position: relative;
+    text-align: right;
+    margin-left: 650px;
+}
+
+
+.otherMessage
+{
+    background-color: #dbdbdb74;
+    color: black;
+    text-align: left;
+    width: 250px;
+    
+    height: fit-content;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    border-top-left-radius: 0px;
+    font-family: 'ReadexPro';
+    font-weight: 100;
+    margin-left: 15px;
+}
+
+.normalMessageHeader
+{
+    display: flex;
+    flex-direction: row;
+    align-items: last baseline;
+    gap: 10px;
+    justify-content: last baseline;
+}
+
+.noramlMessageHeaderImage
+{
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 50%;
+}
+
+.viewedByImage
+{
+    width: 20px;
+    height: 20px;
+    border: none;
+    border-radius: 50%;
+    margin-left: -10px;
+}
+
+.normalMessageBottom
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: left;
+    gap: 10px;   
+}
+
+.normalMyMessageBottom
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: right;
+    gap: 10px;      
+}
+
+.senderName
+{
+    font-weight: 400;
+}
+
+.messageTimestamp
+{
+    font-weight: bold;
+    font-family: 'ReadexPro';
+    margin-top: -2px;
+}
+
+.viewedByImages
+{
+    display: flex;
+    flex-direction: row;
+   
+}
+
+.viewedByImagesCollection
+{
+    margin-left: 10px;
     
 }
+
+.viewedByItem
+{
+    display: flex;
+    flex-direction: row;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+    padding-left: 25px;
+    justify-content: left;
+    align-items: center;
+    gap: 50px;
+}
+
+.viewedByColumn
+{
+    display: flex;
+    flex-direction: column;
+    margin-top: 25px;
+    height: 100%;
+    max-height: 100%;
+    overflow-y: hidden;
+    scroll-behavior: auto;
+}
+
+.viewedByColumn::-webkit-scrollbar
+{
+    display: none;
+}
+
+.viewedByItemName
+{
+    font-weight: 100;
+    font-family: 'ReadexPro';
+    margin-top: 15px;
+}
+
+.viewedByDiv
+{
+    width: 400px;
+    height: 250px;
+    border: 0px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.25);
+    font-family: 'ReadexPro';
+    position: absolute;
+    background-color: white;
+    z-index: 999;
+    left: 45%;
+    top: 25%;
+}
+
+.viewedByDivHeader
+{
+    height: 20%;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+    display: flex;
+    padding-left: 10px;
+    flex-direction: row;
+    justify-content: left;
+    align-items: baseline;
+    gap: 253px;
+}
+
+.viewedByItemImage
+{
+    border: none;
+    border-radius: 50%;
+    height: 40px;
+    width: 40px;
+}
+
+.viewedByCloseButton
+{
+    height: 100%;
+    width: 55px;
+    background-color: black;
+    border: none;
+    border-top-right-radius: 10px;
+}
+
+.viewedByCloseButton:focus
+{
+    outline: none;
+}
+

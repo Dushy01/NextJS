@@ -1,22 +1,38 @@
 
 
 
-import { useState, useEffect, SetStateAction } from "react"
+import { useState, useEffect, SetStateAction, useRef } from "react"
 import { useGlobalProjectIdContext } from "@/app/context/projectId"
 import { useGlobalUidContext } from "@/app/context/uid"
 import { firestore } from "@/app/firebase"
-import { where, doc, getDoc, collection, query, onSnapshot, getDocs } from "firebase/firestore"
+import { where, doc, getDoc, collection, query, onSnapshot, getDocs, orderBy, addDoc } from "firebase/firestore"
 import styles from './members.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMessage } from '@fortawesome/free-solid-svg-icons';
+import { faL, faMessage } from '@fortawesome/free-solid-svg-icons';
+
+// group chat message 
+interface messageDoc {
+    messageDoc: string;
+    docData: {
+        From: string;
+        Message: string;
+        TimeStamp: string;
+        ViewedBy: string[];
+        Date: string;
+    }
+}
 
 
+
+// reference document
 interface TaskDocument {
     DocId: string;
     TaskName: string;
     Deadline: string;
 }
 
+
+// users data
 interface userData {
     Name: string;
     ImageUrl: string;
@@ -38,6 +54,9 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
     const [taskDocument, setTaskDocument] = useState<TaskDocument | null>(null);
     const [messageText, setMessageText] = useState<string>('');
 
+    const [chatMessages, setChatMessages] = useState<messageDoc[]>([]);
+
+
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const message = e.target.value;
@@ -47,6 +66,35 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
 
 
     useEffect(() => {
+        // getting users chat messages 
+        const q = query(
+            collection(firestore, 'GroupChat'),
+            orderBy('Date', 'asc')
+        );
+
+        const unsubscribe = onSnapshot(q, async (snapshot) => {
+            const messages: messageDoc[] = [];
+            snapshot.forEach((doc: any) => {
+                // here to include the viewed by update check conditon if the uid does not exist in the ViewedBy list then add it inside 
+                messages.push({
+                    messageDoc: doc.id,
+                    docData: doc.data() as messageDoc['docData']
+                });
+            });
+            setChatMessages(messages);
+
+            // Fetch viewedBy images for each message
+            const limitedMessages = messages.slice(0, 3);
+            for (const message of limitedMessages) {
+                await fetchViewedByImages(message.messageDoc, message.docData.ViewedBy);
+            }
+        });
+
+
+
+
+
+        // user data for the members showing
         const getUsersData = () => {
             // getting the members ids first
             const docRef = doc(firestore, 'Projects', projectId);
@@ -80,14 +128,95 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
                             });
                         });
                     });
+                    console.log(users);
                 } else {
                     console.log('Project does not exist');
                 }
             });
         };
 
-        getUsersData();
+
+        // clean up the listner after unmounting the component
+        return () => {
+            unsubscribe();
+            getUsersData();
+        }
+
+
     }, [projectId]); // Listen for changes in projectId
+
+    const messageBoxRef = useRef<HTMLDivElement>(null);
+    const isAtBottomRef = useRef<boolean>(true);
+
+    useEffect(() => {
+        const messageBox = messageBoxRef.current;
+        if (messageBox) {
+            if (isAtBottomRef.current) {
+                messageBox.scrollTop = messageBox.scrollHeight;
+            }
+        }
+    }, [chatMessages]);
+
+    const handleScroll = () => {
+        const messageBox = messageBoxRef.current;
+        if (messageBox) {
+            const isAtBottom = messageBox.scrollHeight - messageBox.scrollTop === messageBox.clientHeight;
+            isAtBottomRef.current = isAtBottom;
+        }
+    };
+
+    function getCurrentDate() {
+        const currentDate = new Date();
+        return currentDate.toISOString(); // returns the date in ISO 8601 format
+    }
+
+    // function for formatting the document 
+    const formatDate = (dateString: string) => {
+        const options: any = { year: 'numeric', month: 'long', day: 'numeric' };
+        return new Date(dateString).toLocaleDateString(undefined, options);
+    };
+
+    // grouping the messages with the date 
+    const groupMessagesByDate = (messages: messageDoc[]) => {
+        const groupedMessages: { [key: string]: messageDoc[] } = {};
+
+        messages.forEach(message => {
+            const date = formatDate(message.docData.Date);
+            if (!groupedMessages[date]) {
+                groupedMessages[date] = [];
+            }
+            groupedMessages[date].push(message);
+        });
+
+        return groupedMessages;
+    };
+
+    const groupedMessages = groupMessagesByDate(chatMessages);
+
+    const sendMessage = async () => {
+        if (messageText.trim() !== "") {
+            const currentTime = new Date();
+            const hours = String(currentTime.getHours()).padStart(2, '0');
+            const minutes = String(currentTime.getMinutes()).padStart(2, '0');
+            const formattedTime = `${hours}:${minutes}`;
+
+            const currentDate = getCurrentDate() // function to get current date
+
+            // Add the message
+            const messageData = {
+                'From': uid,
+                'Message': messageText.trim(),
+                'TimeStamp': formattedTime,
+                'ViewedBy': [],
+                'Date': currentDate
+            };
+
+            const collectionRef = collection(firestore, 'GroupChat');
+            await addDoc(collectionRef, messageData);
+
+        }
+        setMessageText('');
+    };
 
 
     const AddMessageTab = (Uid: string) => {
@@ -113,7 +242,7 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
                 console.log(docData);
                 const fetchedTask: TaskDocument = {
                     DocId: doc.id,
-                    TaskName: docData['TaskName'],
+                    TaskName: docData['Heading'],
                     Deadline: docData['Deadline']
                 };
                 setTaskDocument(fetchedTask); // Store the fetched document in the state
@@ -124,6 +253,114 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
     const closeTaskReference = () => {
         setTaskDocument(null);
     }
+
+
+    // to check if the message is a reference message 
+    const checkMessageText = (chatMessage: string) => {
+        const regex = /@\w+-\w+-\w+-\w+-\w+/g;
+        const matches = chatMessage.match(regex);
+        if (matches) {
+            console.log('True');
+            return true;
+        }
+
+        return false;
+    }
+
+    const [senderImages, setSenderImages] = useState<{ [key: string]: string }>({});
+    const [senderNames, setSenderNames] = useState<{ [key: string]: string }>({});
+    // to store the doc id for the messages with the url
+    const [viewedByImages, setViewedByImages] = useState<{ [key: string]: string[] }>({});
+
+
+    const fetchViewedByImages = async (docId: string, viewedBy: string[]) => {
+        const imageUrls: string[] = await Promise.all(viewedBy.map(async (userId) => {
+            const docRef = query(collection(firestore, 'Users'), where('Uid', "==", userId));
+            const docSnapshot = await getDocs(docRef);
+            if (!docSnapshot.empty) {
+                const docData = docSnapshot.docs[0].data();
+                return docData['ImageUrl'];
+            }
+            return '';
+        }));
+
+        setViewedByImages((prev) => ({ ...prev, [docId]: imageUrls }));
+    }
+
+
+
+    const getSenderImage = async (senderId: string) => {
+        if (senderImages[senderId]) {
+            return senderImages[senderId];
+        }
+        const docRef = query(collection(firestore, 'Users'), where('Uid', "==", senderId));
+        const docSnapshot = await getDocs(docRef);
+        if (!docSnapshot.empty) {
+            const docData = docSnapshot.docs[0].data();
+            const imageUrl = docData['ImageUrl'];
+            setSenderImages((prev) => ({ ...prev, [senderId]: imageUrl }));
+            return imageUrl;
+        }
+        return '';
+    }
+
+    const getSenderName = async (senderId: string) => {
+        if (senderNames[senderId]) {
+            return senderNames[senderId];
+        }
+        const docRef = query(collection(firestore, 'Users'), where('Uid', "==", senderId));
+        const docSnapshot = await getDocs(docRef);
+        if (!docSnapshot.empty) {
+            const docData = docSnapshot.docs[0].data();
+            const name = docData['Name'];
+            setSenderNames((prev) => ({ ...prev, [senderId]: name }));
+            return name;
+        }
+        return '';
+    }
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const senderIds = chatMessages.map(msg => msg.docData.From);
+            for (const senderId of senderIds) {
+                await getSenderImage(senderId);
+                await getSenderName(senderId);
+            }
+
+            // get the chat message and get the doc id and get the viewedby and add them in the supposed list of the dict 
+
+
+        };
+
+        fetchData();
+    }, [chatMessages]);
+
+
+    const [OpenViewedBy, setOpenViewedBy] = useState(false);
+    // Create a new useState for the for the dict view personImageUrl: name from his doc
+    const [viewedBy, setViewedBy] = useState<{ [key: string]: string }>({});
+    // function to open the message viewed div for the peoples
+    const openViewedBy = async (viewedByUrls: string[]) => {
+        setOpenViewedBy(true);
+        const viewedByUrlDict: { [key: string]: string } = {};
+        for (const viewedByUrl of viewedByUrls) {
+            const docRef = query(collection(firestore, 'Users'), where('ImageUrl', "==", viewedByUrl));
+            const docSnaphsot = await getDocs(docRef);
+            if (!docSnaphsot.empty) {
+                const docData = docSnaphsot.docs[0].data();
+                viewedByUrlDict[viewedByUrl] = docData['Name']
+            }
+        }
+
+        setViewedBy(viewedByUrlDict);
+    }
+
+    const closeViewedBy = () => {
+        setViewedBy({});
+        setOpenViewedBy(false);
+    }
+
+
 
 
     return (
@@ -150,6 +387,7 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
                                         </div>
 
                                         <p className={styles.userName}>{user.Name}</p>
+
                                     </div>
 
                                 </div>
@@ -165,63 +403,135 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
             </div>
 
             <div className={styles.RightContainer}>
-                <div className={styles.chatBox}>
+
+                <div id="messageBox" ref={messageBoxRef} onScroll={handleScroll} className={` ${taskDocument ? styles.chatReferenceCreated : styles.chatBox}`}>
+
+                    {Object.keys(groupedMessages).map(date => (
+
+                        <div key={date}>
+
+                            <div className={styles.dateHeader}>{date}</div>
+
+                            {groupedMessages[date].map((message) => (
+
+                                <div style={{ marginTop: 10 }} key={message.messageDoc} className={`${message.docData.From === uid ? styles.myMessage : styles.otherMessage} ${checkMessageText(message.docData.Message) ? styles.referenceMessage : styles.normalMessage}`} id={message.messageDoc}>
+                                    {checkMessageText(message.docData.Message) ?
+                                        /* styling and data for the reference message */
+                                        <div>
+
+                                        </div>
+                                        :
+                                        /* styling and data for the normal message  */
+                                        <div>
+                                            {message.docData.From != uid ?
+                                                // message send by someone else in thre group
+                                                <div>
+                                                    <div className={styles.normalMessageHeader}>
+                                                        {senderImages[message.docData.From] && <img className={styles.noramlMessageHeaderImage} src={senderImages[message.docData.From]} alt="Sender profile picture" />}
+                                                        <p className={styles.senderName}>{senderNames[message.docData.From]}</p>
+                                                    </div>
+                                                    <p>{message.docData.Message}</p>
+                                                    <div className={styles.normalMessageBottom}>
+                                                        <div className={styles.viewedByImagesCollection}>
+                                                            {/* list to show the message is viewed by the person as image */}
+                                                            {viewedByImages[message.messageDoc] && (
+                                                                <div className={styles.viewedByImages} onClick={() => openViewedBy(viewedByImages[message.messageDoc])}>
+                                                                    {viewedByImages[message.messageDoc].map((imageUrl, index) => (
+                                                                        <img className={styles.viewedByImage} key={index} src={imageUrl} alt="Viewed by user profile picture" />
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <p className={styles.messageTimestamp}>{message.docData.TimeStamp}</p>
+                                                    </div>
+                                                </div>
+                                                :
+                                                // message sent by me should be 
+                                                <div>
+                                                    <p>{message.docData.Message}</p>
+                                                    <div className={styles.normalMyMessageBottom}>
+                                                    <p className={styles.messageTimestamp}>{message.docData.TimeStamp}</p>
+                                                        <div className={styles.viewedByImagesCollection}>
+                                                            {/* list to show the message is viewed by the person as image */}
+                                                            {viewedByImages[message.messageDoc] && (
+                                                                <div className={styles.viewedByImages} onClick={() => openViewedBy(viewedByImages[message.messageDoc])}>
+                                                                    {viewedByImages[message.messageDoc].map((imageUrl, index) => (
+                                                                        <img className={styles.viewedByImage} key={index} src={imageUrl} alt="Viewed by user profile picture" />
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                       
+                                                    </div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+
+                            ))}
+
+                        </div>
+
+                    ))}
+
 
                 </div>
-                <div className={styles.chatInput}>
+
+
+                <div className={`${taskDocument ? styles.chatInputReference : styles.chatInput}`}>
+
                     {/* create a function on the inout to make the chat up and look for the reference id */}
                     <div className={styles.chatMessageReference}>
+
                         {
                             taskDocument ?
                                 <div className={styles.referenceDiv}>
-                                    <div className={styles.referenceRow}>
-                                        <div className={styles.referenceData}>
-                                            <p>{taskDocument.TaskName}</p>
-                                            <p>{taskDocument.DocId}</p>
-                                        </div>
-                                        <button onClick={closeTaskReference}>Cancel</button>
+
+
+
+                                    <div className={styles.referenceData}>
+
+                                        <p className={styles.referenceTaskName}>{taskDocument.TaskName}</p>
+                                        <p className={styles.referenceTaskId}>{taskDocument.DocId}</p>
+
                                     </div>
-                                </div> :
+
+                                    <button className={styles.cancelReferenceButton} onClick={closeTaskReference}><img src="/Cross.png" alt="Close icon" /></button>
+
+
+                                </div>
+                                :
                                 <div>
 
                                 </div>
                         }
+
                         <input className={styles.chatMessageInputBox} onChange={handleInputChange} type="text" placeholder="Type message..." />
+
                     </div>
-                    <button className={styles.sendChatButton}>Send</button>
+
+                    <button onClick={sendMessage} className={styles.sendChatButton}>Send</button>
                 </div>
+
+
             </div>
 
 
-            {/* <div>
-                
-
-
-                {
-                    users.length > 0 ?
-                        <div className={styles.members}>
-                            {users.map((user) => (
-                                <div key={user.Uid} className={styles.MemberRow}>
-                                    <div className={styles.memberData}>
-                                        <div className={styles.userStatusRow}>
-                                            <img className={styles.userImage} src={user.ImageUrl} alt={user.Name} />
-                                            <div className={`${user.Status ? styles.active : styles.inactive}`}></div>
-                                        </div>
-                                        <p className={styles.userName}>{user.Name}</p>
-                                    </div>
-                                    <button onClick={
-                                        () => AddMessageTab(user.Uid)
-                                    } className={styles.userChatButton}><img src="/Message.png" /> Message</button>
-                                </div>
-                            ))}
-                        </div> :
-                        <div>
-                            <p>No Member exist yet!</p>
-                            
-                        </div>
-                }
-
-            </div> */}
+            {OpenViewedBy &&
+                <div className={styles.viewedByDiv}>
+                    {/* show up the viewed by dict for the users  */}
+                    <div className={styles.viewedByDivHeader}><p>Viewed By</p><button className={styles.viewedByCloseButton} onClick={closeViewedBy}><img src="/Cross.png" alt="close button icon" /></button></div>
+                    <div className={styles.viewedByColumn}>
+                        {Object.entries(viewedBy).map(([url, name]) => (
+                            <div key={url} className={styles.viewedByItem}>
+                                <img src={url} alt={name} className={styles.viewedByItemImage} />
+                                <p className={styles.viewedByItemName}>{name}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            }
 
 
         </main>
