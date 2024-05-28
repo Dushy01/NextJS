@@ -84,8 +84,8 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
             setChatMessages(messages);
 
             // Fetch viewedBy images for each message
-            const limitedMessages = messages.slice(0, 3);
-            for (const message of limitedMessages) {
+            // const limitedMessages = messages.slice(0, 3);
+            for (const message of messages) {
                 await fetchViewedByImages(message.messageDoc, message.docData.ViewedBy);
             }
         });
@@ -254,18 +254,59 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
         setTaskDocument(null);
     }
 
+    const [storeMessageForReference, setStoreMessageForReference] = useState<{ [key: string]: string[] }>({});
 
     // to check if the message is a reference message 
-    const checkMessageText = (chatMessage: string) => {
-        const regex = /@\w+-\w+-\w+-\w+-\w+/g;
+    // const checkMessageText = (messageDocId: string, chatMessage: string) => {
+    //     const regex = /@\w+-\w+-\w+-\w+-\w+/g;
+    //     const matches = chatMessage.match(regex);
+    //     if (matches) {
+
+    //         console.log('True');
+    //         // store the data message in the dict and dict structure would be this 
+
+    //         return true;
+    //     }
+
+    //     return false;
+    // }
+
+    const fetchTaskDetails = async (taskId: string) => {
+        const docRef = query(collection(firestore, 'Tasks'), where('TaskID', "==", taskId));
+        const querySnapshot = await getDocs(docRef);
+
+        if (!querySnapshot.empty) {
+            const doc = querySnapshot.docs[0];
+            const docData = doc.data();
+            return [docData['Heading'], taskId]; // Return the heading and the task ID
+        }
+        return [];
+    };
+
+    const checkMessageText = async (messageDocId: string, chatMessage: string) => {
+        const regex = /\b\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\b/g; // Updated regex to match UUIDs
         const matches = chatMessage.match(regex);
         if (matches) {
             console.log('True');
+
+            // Extract the task ID from the matches array
+            const taskId = matches[0]; // No need to remove '@' character
+
+            // Fetch task details
+            const taskDetails = await fetchTaskDetails(taskId);
+
+            if (taskDetails.length > 0) {
+                setStoreMessageForReference((prev) => ({
+                    ...prev,
+                    [messageDocId]: taskDetails
+                }));
+            }
+
             return true;
         }
 
         return false;
-    }
+    };
 
     const [senderImages, setSenderImages] = useState<{ [key: string]: string }>({});
     const [senderNames, setSenderNames] = useState<{ [key: string]: string }>({});
@@ -403,7 +444,7 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
             </div>
 
             <div className={styles.RightContainer}>
-
+                {/* task document to include styles for the reference task based input box */}
                 <div id="messageBox" ref={messageBoxRef} onScroll={handleScroll} className={` ${taskDocument ? styles.chatReferenceCreated : styles.chatBox}`}>
 
                     {Object.keys(groupedMessages).map(date => (
@@ -412,12 +453,80 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
 
                             <div className={styles.dateHeader}>{date}</div>
 
-                            {groupedMessages[date].map((message) => (
+                            {groupedMessages[date].map(async (message) => (
 
-                                <div style={{ marginTop: 10 }} key={message.messageDoc} className={`${message.docData.From === uid ? styles.myMessage : styles.otherMessage} ${checkMessageText(message.docData.Message) ? styles.referenceMessage : styles.normalMessage}`} id={message.messageDoc}>
-                                    {checkMessageText(message.docData.Message) ?
+                                <div style={{ marginTop: 10 }} key={message.messageDoc} className={`${message.docData.From === uid ? styles.myMessage : styles.otherMessage} ${await checkMessageText(message.messageDoc, message.docData.Message) ? styles.referenceMessage : styles.normalMessage}`} id={message.messageDoc}>
+                                    {await checkMessageText(message.messageDoc, message.docData.Message) ?
                                         /* styling and data for the reference message */
                                         <div>
+
+                                            {message.docData.From != uid ?
+                                                // styles for the text which are not sent by me 
+                                                <div className={styles.referenceMessageOther}>
+                                                    {/* data to hold for the reference */}
+                                                    <div>
+                                                        {storeMessageForReference[message.messageDoc] && (
+                                                            <div className={styles.taskDetails}>
+                                                                {storeMessageForReference[message.messageDoc].map((detail, index) => (
+                                                                    <p key={index}>{detail}</p>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    {/* message data */}
+                                                    {/* here would hold the message and viewed by and the sent time */}
+                                                    <div>
+                                                        <div className={styles.normalMessageHeader}>
+                                                            {senderImages[message.docData.From] && <img className={styles.noramlMessageHeaderImage} src={senderImages[message.docData.From]} alt="Sender profile picture" />}
+                                                            <p className={styles.senderName}>{senderNames[message.docData.From]}</p>
+                                                        </div>
+                                                        <p>{message.docData.Message}</p>
+                                                        <div className={styles.normalMessageBottom}>
+                                                            <div className={styles.viewedByImagesCollection}>
+                                                                {/* list to show the message is viewed by the person as image */}
+                                                                {viewedByImages[message.messageDoc] && (
+                                                                    <div className={styles.viewedByImages} onClick={() => openViewedBy(viewedByImages[message.messageDoc])}>
+                                                                        {viewedByImages[message.messageDoc].map((imageUrl, index) => (
+                                                                            <img className={styles.viewedByImage} key={index} src={imageUrl} alt="Viewed by user profile picture" />
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                            <p className={styles.messageTimestamp}>{message.docData.TimeStamp}</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                :
+                                                // styles for the text which is sent by me
+                                                <div>
+                                                    <div>
+                                                        {storeMessageForReference[message.messageDoc] && (
+                                                            <div className={styles.taskDetails}>
+                                                                {storeMessageForReference[message.messageDoc].map((detail, index) => (
+                                                                    <p key={index}>{detail}</p>
+                                                                ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <p>{message.docData.Message}</p>
+                                                        <div className={styles.normalMyMessageBottom}>
+                                                            <p className={styles.messageTimestamp}>{message.docData.TimeStamp}</p>
+                                                            <div className={styles.viewedByImagesCollection}>
+                                                                {/* list to show the message is viewed by the person as image */}
+                                                                {viewedByImages[message.messageDoc] && (
+                                                                    <div className={styles.viewedByImages} onClick={() => openViewedBy(viewedByImages[message.messageDoc])}>
+                                                                        {viewedByImages[message.messageDoc].map((imageUrl, index) => (
+                                                                            <img className={styles.viewedByImage} key={index} src={imageUrl} alt="Viewed by user profile picture" />
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
 
                                         </div>
                                         :
@@ -450,7 +559,7 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
                                                 <div>
                                                     <p>{message.docData.Message}</p>
                                                     <div className={styles.normalMyMessageBottom}>
-                                                    <p className={styles.messageTimestamp}>{message.docData.TimeStamp}</p>
+                                                        <p className={styles.messageTimestamp}>{message.docData.TimeStamp}</p>
                                                         <div className={styles.viewedByImagesCollection}>
                                                             {/* list to show the message is viewed by the person as image */}
                                                             {viewedByImages[message.messageDoc] && (
@@ -461,7 +570,7 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
                                                                 </div>
                                                             )}
                                                         </div>
-                                                       
+
                                                     </div>
                                                 </div>
                                             }
