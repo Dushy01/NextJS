@@ -7,6 +7,9 @@ import { collection, onSnapshot, where, query, getDocs } from 'firebase/firestor
 import { firestore, storage } from '@/app/firebase'; // Import your Firestore instance
 import { useGlobalProjectIdContext } from '@/app/context/projectId';
 import { getDownloadURL, ref } from 'firebase/storage';
+
+
+
 interface documentStructure {
 
     id: string,
@@ -40,7 +43,16 @@ export default function TaskStatus({ setOpenTask, setTaskHeading, setTaskDocumen
     const [showFileDialog, setShowFileDialog] = useState(false);
     const [filesToShow, setFilesToShow] = useState<any>({});
 
-    const [currentDate, setCurrentDate] = useState('');
+    function getCurrentDate() {
+        const currentDate = new Date();
+        const day = String(currentDate.getDate()).padStart(2, '0');
+        const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based
+        const year = currentDate.getFullYear();
+
+        return `${day}/${month}/${year}`;
+    }
+
+    
 
     useEffect(() => {
         // Reference to the Firestore collection you want to listen to
@@ -53,6 +65,8 @@ export default function TaskStatus({ setOpenTask, setTaskHeading, setTaskDocumen
                 const updatedDocuments: any = [];
                 querySnapshot.forEach(async (doc) => {
                     console.log('The doc is', doc.data());
+                    
+                 
                     // Convert the document to JSON and add it to the updatedDocuments array
                     updatedDocuments.push({
                         id: doc.id,
@@ -67,33 +81,10 @@ export default function TaskStatus({ setOpenTask, setTaskHeading, setTaskDocumen
             }
         );
 
-        // function to add the image url
-        const createdByImage = async (uid: string) => {
-            const q = query(collection(firestore, 'Users'), where('Uid', "==", uid))
-            const documents = await getDocs(q);
-            if (!documents.empty) {
-                console.log(`Image url for the uid: ${uid} is ${documents.docs[0].data().ImageUrl}`);
-                return documents.docs[0].data().ImageUrl;
-            }
-            return ''; // Return a default value if image URL is not found
-        }
-
-        function getCurrentDate() {
-            const currentDate = new Date();
-            const day = String(currentDate.getDate()).padStart(2, '0');
-            const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Months are zero-based
-            const year = currentDate.getFullYear();
-
-            return `${day}/${month}/${year}`;
-        }
-
-
-
-
         // Return a cleanup function to unsubscribe from the listener when the component unmounts
         return () => {
             unsubscribe();
-            setCurrentDate(getCurrentDate());
+           
         }
     }, [projectId]); // Add projectId to the dependency array
 
@@ -148,7 +139,7 @@ export default function TaskStatus({ setOpenTask, setTaskHeading, setTaskDocumen
                                 <p>Assigniees</p>
                                 {/* image would be shown here in this  */}
                                 <div className={styles.taskAssigneesImages}>
-                                    {document.data.AssignieesImages.map((image, index) => (
+                                    {document.data.AssignieesImages.slice(0, 2).map((image, index) => (
                                         <img className={styles.assigneeImage} key={index} src={image} alt={`Assignee ${index + 1}`} />
                                     ))}
                                 </div>
@@ -156,12 +147,12 @@ export default function TaskStatus({ setOpenTask, setTaskHeading, setTaskDocumen
                             <div className={styles.sideDescriptionTask}>
                                 <div>
                                     <button className={styles.attachmentButton} onClick={() => openFilesDialogs(document.data.Files)}>
-                                        <img src="/Attach.png" alt='attachment image' />
+                                        Files
                                     </button>
                                 </div>
                                 <div className={styles.deadline}>
                                     <h4>Deadline</h4>
-                                    <p className={new Date(currentDate) > new Date(document.data.Deadline) ? styles.invalidDate : styles.validDate}
+                                    <p className={getCurrentDate() > document.data.Deadline ? styles.invalidDate : styles.validDate}
                                     >{document.data.Deadline}</p>
                                 </div>
                             </div>
@@ -173,6 +164,11 @@ export default function TaskStatus({ setOpenTask, setTaskHeading, setTaskDocumen
 
             {showFileDialog &&
                 <div className={styles.filesDialog}>
+                    <div className={styles.filesDialogHeader}>
+                        <p className={styles.fileDialogHeaderHeading}>Task files</p>
+                        <button onClick={() => setShowFileDialog(false)} className={styles.cancelFileDialogButton}><img src='/Cross.png' alt='Close button' /></button>
+                    </div>
+                    <div className={styles.fileDialogBottom}>
                     {/* showing files map with the download button with their names  */}
                     {Object.keys(filesToShow).length > 0 ?
                         <div>
@@ -184,13 +180,14 @@ export default function TaskStatus({ setOpenTask, setTaskHeading, setTaskDocumen
                                     </div>
                                 ))}
                             </div>
-                            <button onClick={() => setShowFileDialog(false)} className={styles.closeFileDialog}>Close</button>
+                           
                         </div>
                         :
                         <div>
-                            <p>No files to show!</p>
+                            <p className={styles.noFileExist}>No files to show!</p>
                         </div>
                     }
+                    </div>
                 </div>
             }
 

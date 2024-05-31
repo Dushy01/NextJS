@@ -10,8 +10,9 @@ interface assignedList {
 }
 
 
-
+import axios from 'axios';
 import { useGlobalUidContext } from '@/app/context/uid';
+import { useGlobalProjectIdContext } from '@/app/context/projectId';
 import styles from './taskdetails.module.css'
 import { firestore } from "@/app/firebase";
 import { collection, doc, Firestore, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore";
@@ -19,13 +20,14 @@ import { useState, useEffect } from "react";
 export default function TaskDetails({ taskDocumentId }: taskDetailsProps) {
     // const [assigneMap, setAssigneMap] = useState({});
     const [assigneeList, setAssigneeList] = useState<assignedList[]>([]);
-
+    const [taskId, setTaskId] = useState('');
     const [taskDescription, setTaskDescription] = useState('');
     const [creator, setCreator] = useState(false);
     const [creatorIamge, setCreatorImage] = useState('');
     // creating a array to hold the user object which would include the ImageUrl, Uid, and status level of the user 
-
+    const [asssignies, setAssignies] = useState<string[]>([]);
     const { uid } = useGlobalUidContext();
+    const {  projectName} = useGlobalProjectIdContext();
 
 
     const getImageUrl = async (userUid: string) => {
@@ -55,7 +57,9 @@ export default function TaskDetails({ taskDocumentId }: taskDetailsProps) {
             if (document.exists()) {
                 const documentAssigneMap = document.data().Assignies || {};
                 const documentDescription = document.data().Description || '';
+             
                 const createdBy = document.data().CreatedBy;
+                setTaskId(createdBy);
                 getCreatorImage(createdBy);
                 setTaskDescription(documentDescription);
                 if (createdBy === uid) {
@@ -63,23 +67,22 @@ export default function TaskDetails({ taskDocumentId }: taskDetailsProps) {
                 }
                 //const newDocumentAssigneMap: { [key: string]: any } = {};
                 // Iterate over key-value pairs, apply a function, and update assigneMap
-
+                const assignieList: string[] = [];
                 const assignedList = await Promise.all(
                     Object.entries(documentAssigneMap).map(async ([key, value]) => {
                         // Apply your function to the key here
+                        assignieList.push(key as string);
                         const transformedKey = await getImageUrl(key) as string;
                         return {
                             'ImageUrl': transformedKey,
                             'Uid': key,
                             'Status': value as string
                         }
-                        // console.log(`converting key: ${key} for it's url, ${transformedKey}`);
-                        // // Return the transformed key-value pair
-                        // newDocumentAssigneMap[transformedKey] = value;
+                        
                     })
+                    
                 );
-
-                console.log(assignedList);
+                setAssignies(assignieList);
 
                 // Update the assigneMap state with the updatedAssignMap
                 setAssigneeList(assignedList);
@@ -92,6 +95,20 @@ export default function TaskDetails({ taskDocumentId }: taskDetailsProps) {
     const updateFinishStatus = async () => {
         const docRef = doc(firestore, 'Tasks', taskDocumentId);
         await updateDoc(docRef, {Status: true});
+        const assignedEmail: string[] = [];
+        // loop over the list to send an email
+        for (const id of asssignies) {
+            const docRef = query(collection(firestore, 'Users'), where("Uid" ,"==", id));
+            const docSnapshot = await getDocs(docRef);
+            if (!docSnapshot.empty) {
+                const docEmail = docSnapshot.docs[0].data()['Email'];
+                assignedEmail.push(docEmail);
+            }
+        }
+        // const response = await axios.post('http://localhost:5000/finishTask', {assigniesIds: assignedEmail, projectName: projectName, taskId: taskId});
+        // console.log(response.status);
+        const response = await axios.post('/api/finishTask', {assigniesIds: assignedEmail, projectName: projectName, taskId: taskId});
+        console.log(response.status);   
     }
 
 

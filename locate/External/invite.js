@@ -129,6 +129,39 @@ const inviteEmail = (invitedUser, invitedUrl, callback) => {
     });
 };
 
+// Define the inviteEmail function with a callback parameter
+const taskFinish = (invitedUser, projectName, taskid, callback) => {
+    // Create a transporter object with your email service credentials
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'agreharshit610@gmail.com',
+            pass: 'nzgj amef lhwx jcgt'
+        }
+    });
+
+    // Define the email content
+    const mailOptions = {
+        from: 'agreharshit610@gmail.com',
+        to: invitedUser,
+        subject: 'Project task is completed',
+        text: `${projectName} Task has been completed. Task id is:\n\n${taskid}`
+    };
+
+    // Send the email
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error('Error sending email:', error);
+            // Call the callback with false if there's an error
+            callback(false);
+        } else {
+            console.log('Email sent:', info.response);
+            // Call the callback with true if the email is sent successfully
+            callback(true);
+        }
+    });
+};
+
 
 // Define the inviteEmail function with a callback parameter
 const createTask = (invitedUser, invitedData, callback) => {
@@ -180,6 +213,19 @@ app.post('/sendInvite', (req, res) => {
         }
     });
 });
+
+app.post('/finishTask', (req, res) => {
+    const {assigniesIdEmails, projectName, taskId} = req.body;
+    try {
+        for (const email of assigniesIdEmails) {
+            taskFinish(email, projectName, taskId);
+        }
+        res.status(200);
+    }
+    catch (e) {
+        console.log('Error in updating the users about finishing the task', e);
+    }
+})
 
 app.post('/sendTaskCreate', (req, res) => {
     const {Heading, Deadline, CreatedAt, CreatedBy, Members} = req.body;

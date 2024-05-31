@@ -135,8 +135,11 @@
 {
     width: 100%;
     display: flex;
-    overflow: hidden;
+    /* overflow: hidden; */
+    height: 100%;
+    max-height: 100%;
     flex-direction: column;
+    scroll-behavior: auto;
 }
 
 .chatBox
@@ -290,12 +293,15 @@
     font-weight: 600;
 }
 
+
+
 .myMessage
 {
     background-color: black;
     color: white;
     width: 250px;
     height: fit-content;
+    /* padding: 10px; */
     padding: 10px;
     border: none;
     border-radius: 5px;
@@ -308,6 +314,8 @@
 }
 
 
+
+
 .otherMessage
 {
     background-color: #dbdbdb74;
@@ -316,7 +324,7 @@
     width: 250px;
     
     height: fit-content;
-    padding: 10px;
+    /* padding: 10px; */
     border: none;
     border-radius: 5px;
     border-top-left-radius: 0px;
@@ -377,6 +385,14 @@
     font-weight: bold;
     font-family: 'ReadexPro';
     margin-top: -2px;
+}
+
+.messageTimestampMyReference
+{
+    font-weight: bold;
+    font-family: 'ReadexPro';
+    margin-top: -2px;
+    color: black;
 }
 
 .viewedByImages
@@ -475,3 +491,39 @@
     outline: none;
 }
 
+
+
+.referenceMessageHeader
+{
+    background-color: #FFF3F3;
+    width: 100%;
+    padding: 5px;
+}
+
+.referenceMessageBottom
+{
+    background-color: white;
+    margin-top: 10px;
+    padding: 5px;
+}
+
+.referenceMessage
+{
+    background-color: white;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.referenceMessageHeader
+{
+    width: 100%;
+}
+
+.myReferenceMessage
+{
+    font-weight: 100;
+    font-family: 'ReadexPro';
+    color: black;
+    padding-right: 20px;
+    text-align: right;
+    width: 250px;
+}

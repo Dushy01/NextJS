@@ -1,5 +1,4 @@
-.Task
-{
+.Task {
     width: 1000px;
     background-color: #F1F1F1;
     border: none;
@@ -9,8 +8,7 @@
     font-family: 'ReadexPro';
 }
 
-.TaskCollection
-{
+.TaskCollection {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -20,16 +18,14 @@
     max-height: 400px;
     overflow-y: auto;
     scroll-behavior: auto;
-    
+
 }
 
-.TaskCollection::-webkit-scrollbar
-{
+.TaskCollection::-webkit-scrollbar {
     display: none;
 }
 
-.creatorImage
-{
+.creatorImage {
     width: 100px;
     height: 100px;
     border: none;
@@ -37,8 +33,7 @@
 }
 
 
-.taskTopbar
-{
+.taskTopbar {
     display: flex;
     flex-direction: row;
     justify-content: left;
@@ -46,8 +41,7 @@
     gap: 100px;
 }
 
-.assigneeImage
-{
+.assigneeImage {
     width: 50px;
     height: 50px;
     border: none;
@@ -56,8 +50,7 @@
     margin-left: -25px;
 }
 
-.taskAssigneesImages
-{
+.taskAssigneesImages {
     display: flex;
     flex-direction: row;
     justify-content: left;
@@ -65,8 +58,7 @@
     margin-left: 25px;
 }
 
-.AssigneeDescription
-{
+.AssigneeDescription {
     display: flex;
     flex-direction: column;
     justify-content: left;
@@ -74,8 +66,7 @@
     margin-top: 25px;
 }
 
-.taskStatus
-{
+.taskStatus {
     width: 150px;
     border: none;
     height: 50px;
@@ -87,16 +78,14 @@
     font-family: 'ReadexPro';
 }
 
-.taskTextDescription
-{
+.taskTextDescription {
     width: 500px;
     max-width: 500px;
     height: 50px;
     max-height: 50px;
 }
 
-.bottomBar
-{
+.bottomBar {
     display: flex;
     flex-direction: row;
     justify-content: center;
@@ -104,8 +93,7 @@
     gap: 750px;
 }
 
-.deadline
-{
+.deadline {
     display: flex;
     flex-direction: column;
     justify-content: left;
@@ -113,8 +101,7 @@
 }
 
 
-.sideDescriptionTask
-{
+.sideDescriptionTask {
     display: flex;
     flex-direction: column;
     justify-content: start;
@@ -122,88 +109,117 @@
 }
 
 
-.attachmentButton
-{
-    background-color: transparent;
+.attachmentButton {
+    background-color: black;
     border: none;
-    margin-left: -9px;
+    border-radius: 2px;
+    font-family: 'ReadexPro';
     z-index: 999;
-
+    width: 100px;
+    color: white;
+    height: 50px;
 }
 
-.attachmentButton:focus
-{
+.attachmentButton:focus {
     outline: none;
 }
 
-.filesDialog
-{
+.filesDialog {
     width: 500px;
     height: 300px;
-    background-color: rgb(0, 0, 0);
+    background-color: white;
     position: absolute;
     top: 100px;
-    color: white;
+    display: flex;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
     margin-left: 20%;
     font-family: 'ReadexPro';
     border: 1px solid rgba(255, 255, 255, 0.224);
     border-radius: 10px;
-
+    box-shadow: 0px 2px 10px 1px rgba(0, 0, 0, 0.25);
 }
 
-.fileRow
+.filesDialogHeader
 {
+    height: 20%;
+    width: 100%;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.25);
     display: flex;
     flex-direction: row;
-    justify-content: center;
-    align-items: last baseline;
+    justify-content: left;
+    align-items: baseline;
+    gap: 310px;
+    padding-left: 0px;
 }
 
-.filesColumn
+.fileDialogHeaderHeading
 {
+    font-family: 'ReadexPro';
+    font-size: 20px;
+    margin-left: 20px;
+    font-weight: 100;
+    width: 100px;
+}
+
+.fileDialogBottom
+{
+    margin-top: 50px;
+}
+
+.cancelFileDialogButton
+{
+    height: 100%;
+    width: 75px;
+    border-top-right-radius: 10px;
+    border: none;
+    background-color: black;
+}
+
+.fileRow {
+    display: flex;
+    flex-direction: row;
+    background-color: #f4f4f485;
+    gap: 50px;
+    justify-content: center;
+    align-items: center;
+    padding-left: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.filesColumn {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: start;
-    gap: 10px;
-    height: 100px;
-    max-height: 100px;
-    overflow-y: auto;
+    height: 200px;
+    max-height: 200px;
+    overflow-y: hidden;
     scroll-behavior: auto;
 }
 
-.filesColumn::-webkit-scrollbar
-{
+.filesColumn::-webkit-scrollbar {
     display: none;
 }
 
-.invalidDate
-{
+.invalidDate {
     color: red;
 }
 
-.validDate{
+.validDate {
     color: rgb(93, 255, 93);
 }
 
-.downloadFileButton
-{
+.downloadFileButton {
     background-color: transparent;
     border: none;
 }
 
-.fileName
-{
-    font-size: 24px;
+.fileName {
+    font-size: 16px;
     font-weight: 100;
+    margin-top: 15px;
 }
 
-.closeFileDialog
-{
+.closeFileDialog {
     width: 400px;
     height: 50px;
     background-color: white;
@@ -214,4 +230,10 @@
     font-size: 20px;
     font-weight: 600;
     box-shadow: 0px 2px 10px 0px white;
+}
+
+.noFileExist
+{
+    font-family: 'ReadexPro';
+    text-align: center;
 }

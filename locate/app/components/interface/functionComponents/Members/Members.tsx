@@ -83,6 +83,19 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
             });
             setChatMessages(messages);
 
+            // store the message in the dict and then in the useState hook
+            const isReference: {[key: string]: boolean} = {};
+            for (const message of messages) {
+                const result =  checkMessageForReference(message.docData.Message);
+                if (result) {
+                    checkMessageText(message.messageDoc, message.docData.Message);
+                    isReference[message.messageDoc] = true;
+                }
+            }
+
+            // set the boolean state
+            setIsReferenceMessage(isReference);
+
             // Fetch viewedBy images for each message
             // const limitedMessages = messages.slice(0, 3);
             for (const message of messages) {
@@ -213,9 +226,9 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
 
             const collectionRef = collection(firestore, 'GroupChat');
             await addDoc(collectionRef, messageData);
-
+            setMessageText('');
         }
-        setMessageText('');
+        
     };
 
 
@@ -255,6 +268,8 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
     }
 
     const [storeMessageForReference, setStoreMessageForReference] = useState<{ [key: string]: string[] }>({});
+    // a useState hook based dict to store the boolean value with the message doc id and the nature of being a reference either true or false 
+    const [isReferenceMessage, setIsReferenceMessage] = useState<{ [key: string]: boolean }>({}); // docId: boolean result 
 
     // to check if the message is a reference message 
     // const checkMessageText = (messageDocId: string, chatMessage: string) => {
@@ -283,6 +298,15 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
         return [];
     };
 
+    const checkMessageForReference = (chatMessage: string) => {
+        const regex = /\b\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\b/g; // Updated regex to match UUIDs
+        const matches = chatMessage.match(regex);
+        if (matches) {
+            return true;
+        }
+        return false;
+    }
+
     const checkMessageText = async (messageDocId: string, chatMessage: string) => {
         const regex = /\b\w{8}-\w{4}-\w{4}-\w{4}-\w{12}\b/g; // Updated regex to match UUIDs
         const matches = chatMessage.match(regex);
@@ -301,11 +325,7 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
                     [messageDocId]: taskDetails
                 }));
             }
-
-            return true;
         }
-
-        return false;
     };
 
     const [senderImages, setSenderImages] = useState<{ [key: string]: string }>({});
@@ -453,10 +473,10 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
 
                             <div className={styles.dateHeader}>{date}</div>
 
-                            {groupedMessages[date].map(async (message) => (
+                            {groupedMessages[date].map((message) => (
 
-                                <div style={{ marginTop: 10 }} key={message.messageDoc} className={`${message.docData.From === uid ? styles.myMessage : styles.otherMessage} ${await checkMessageText(message.messageDoc, message.docData.Message) ? styles.referenceMessage : styles.normalMessage}`} id={message.messageDoc}>
-                                    {await checkMessageText(message.messageDoc, message.docData.Message) ?
+                                <div style={{ marginTop: 10 }} key={message.messageDoc} className={`${message.docData.From === uid ? styles.myMessage : styles.otherMessage} ${ isReferenceMessage[message.messageDoc] ? styles.referenceMessage : styles.normalMessage}`} id={message.messageDoc}>
+                                    { isReferenceMessage[message.messageDoc] ?
                                         /* styling and data for the reference message */
                                         <div>
 
@@ -464,18 +484,18 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
                                                 // styles for the text which are not sent by me 
                                                 <div className={styles.referenceMessageOther}>
                                                     {/* data to hold for the reference */}
-                                                    <div>
+                                                    <div className={styles.referenceMessageHeader}>
                                                         {storeMessageForReference[message.messageDoc] && (
                                                             <div className={styles.taskDetails}>
                                                                 {storeMessageForReference[message.messageDoc].map((detail, index) => (
-                                                                    <p key={index}>{detail}</p>
+                                                                    <p style={{fontWeight: '400'}} key={index}>{detail}</p>
                                                                 ))}
                                                             </div>
                                                         )}
                                                     </div>
                                                     {/* message data */}
                                                     {/* here would hold the message and viewed by and the sent time */}
-                                                    <div>
+                                                    <div className={styles.referenceMessageBottom}>
                                                         <div className={styles.normalMessageHeader}>
                                                             {senderImages[message.docData.From] && <img className={styles.noramlMessageHeaderImage} src={senderImages[message.docData.From]} alt="Sender profile picture" />}
                                                             <p className={styles.senderName}>{senderNames[message.docData.From]}</p>
@@ -498,20 +518,20 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
                                                 </div>
                                                 :
                                                 // styles for the text which is sent by me
-                                                <div>
-                                                    <div>
+                                                <div className={styles.referenceMessageMy} >
+                                                    <div className={styles.referenceMessageHeader}>
                                                         {storeMessageForReference[message.messageDoc] && (
                                                             <div className={styles.taskDetails}>
                                                                 {storeMessageForReference[message.messageDoc].map((detail, index) => (
-                                                                    <p key={index}>{detail}</p>
+                                                                    <p style={{fontWeight: '400', color: 'black'}} key={index}>{detail}</p>
                                                                 ))}
                                                             </div>
                                                         )}
                                                     </div>
-                                                    <div>
-                                                        <p>{message.docData.Message}</p>
+                                                    <div className={styles.referenceMessageBottom}>
+                                                        <p className={styles.myReferenceMessage}>{message.docData.Message}</p>
                                                         <div className={styles.normalMyMessageBottom}>
-                                                            <p className={styles.messageTimestamp}>{message.docData.TimeStamp}</p>
+                                                            <p className={styles.messageTimestampMyReference}>{message.docData.TimeStamp}</p>
                                                             <div className={styles.viewedByImagesCollection}>
                                                                 {/* list to show the message is viewed by the person as image */}
                                                                 {viewedByImages[message.messageDoc] && (

@@ -214,19 +214,7 @@ export default function Chat({ setOpenMessage, messageUid, changeDeleteButtonSho
 
             <div className={styles.messageBox} id="messageBox" ref={messageBoxRef} onScroll={handleScroll}>
 
-                {/* apply messages here 
-                {chatMessages.map((message, index) => (
-
-                    <div key={message.messageDocId} onClick={() => addInSelectedChats(message.docData.From, message.messageDocId)} onDoubleClick={() => selectChatMessage(message.docData.From, message.messageDocId)} className={`${message.docData.From === uid ? styles.myMessage : styles.otherMessage} ${selectedChatsAfterDoubleClicks.includes(message.messageDocId) ? styles.highlightMessage : ''}`} id={message.messageDocId}>
-
-                        <p>{message.docData.MessageText}</p>
-                        <div className={`${message.docData.From === uid ? styles.myChatMessageData : styles.chatMessageData}`}>
-                            <p>{message.docData.Timestamp}</p>
-
-                            {message.docData.Status && message.docData.From == uid ? <img className={styles.otherPersonImage} src={otherPersonImageUrl} alt="Other person image" /> : ''}
-                        </div>
-                    </div>
-                ))} */}
+               
 
                 {Object.keys(groupedMessages).map(date => (
                     <div key={date}>
