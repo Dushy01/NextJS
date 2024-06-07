@@ -409,26 +409,26 @@ export default function Interface() {
                 </div>}
 
 
-
+            {/* user profile for the setting page  */}
             {openProfile &&
                 <div className={styles.showProfile} >
                     <div className={styles.profileDescriptionHeader}>
 
                         <div className={styles.profile}>
                             <img src={imageUrl} alt="profle image" className={styles.profileImage} />
-                            <p className={styles.projectName} style={{ color: 'white' }}>{projectName}</p>
+                            <p className={styles.projectName} style={{ color: 'black' }}>{projectName}</p>
                         </div>
 
 
-                        <button className={styles.cancelButtons} onClick={() => setOpenProfile(false)}>Close</button>
+                        <button className={styles.cancelButtons} onClick={() => setOpenProfile(false)}><img src="/Cross.png"/></button>
                     </div>
 
                     {/* content for the profile component */}
                     <div className={styles.userFunctions}>
                         <div className={styles.userFunctionDetails}>
                             <div className={styles.userFunctionsNames}>
-                                <p style={{ marginTop: 10 }} className={styles.userFunctionName}>Tasks</p>
-                                <p style={{ marginTop: 10 }} className={styles.userFunctionName}>Projects</p>
+                                <p style={{ marginTop: 10, color: 'black' }} className={styles.userFunctionName}>Tasks</p>
+                                <p style={{ marginTop: 10, color: 'black' }} className={styles.userFunctionName}>Projects</p>
                             </div>
                             <div className={styles.userFunctionsButtons}>
                                 <button className={styles.showList} onClick={() => setShowTaskList(true)}>Open</button> {/* to show the task list as a component */}

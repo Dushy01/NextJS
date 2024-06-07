@@ -30,9 +30,9 @@
 
     border: none;
     border-radius: 5px;
-    background-color: black;
+    background-color: white;
     padding: 10px;
-    color: white;
+    color: black;
     font-family: 'ReadexPro';
     box-shadow: 0px 2px 25px 0px rgb(0, 0, 0);
 }
@@ -64,7 +64,7 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
-    gap: 25px;
+    gap: 5px;
 }
 
 .cancelButtons {
@@ -74,13 +74,13 @@
     color: black;
     font-size: 16px;
     font-weight: 600;
-    box-shadow: 0px 1px 16px 0px rgb(228, 226, 226);
-    border: none;
+    
+    border: 1px solid rgba(0, 0, 0, 0.542);
     border-radius: 5px;
 }
 
 .projectName {
-    font-size: 18px;
+    font-size: 14px;
     font-family: 'ReadexPro';
     font-weight: 600;
     color: rgb(0, 0, 0);
@@ -479,9 +479,9 @@
 .userFunctionName
 {
     font-family: 'ReadexPro';
-    font-size: 20px;
+    font-size: 16px;
     font-weight: 400;
-    color: white;
+    
 }
 
 .showList
@@ -489,7 +489,7 @@
     width: 150px;
     height: 50px;
     background-color: white;
-    border: none;
+    border: 1px solid rgba(0, 0, 0, 0.393);
     border-radius: 5px;
     font-family: 'ReadexPro';
     color: black;

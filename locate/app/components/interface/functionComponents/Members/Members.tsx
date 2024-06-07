@@ -9,7 +9,7 @@ import { where, doc, getDoc, collection, query, onSnapshot, getDocs, orderBy, ad
 import styles from './members.module.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faL, faMessage } from '@fortawesome/free-solid-svg-icons';
-
+import { useRouter } from "next/navigation" 
 // group chat message 
 interface messageDoc {
     messageDoc: string;
@@ -55,6 +55,8 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
     const [messageText, setMessageText] = useState<string>('');
 
     const [chatMessages, setChatMessages] = useState<messageDoc[]>([]);
+
+    const router = useRouter();
 
 
 
@@ -421,6 +423,12 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
         setOpenViewedBy(false);
     }
 
+    // function to navigate to the next Page
+    const navigateToTask = (docData: string[]) => {
+        const taskId = docData[1];
+        router.push(`/components/Task/${taskId}`);   
+    }
+
 
 
 
@@ -482,7 +490,7 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
 
                                             {message.docData.From != uid ?
                                                 // styles for the text which are not sent by me 
-                                                <div className={styles.referenceMessageOther}>
+                                                <div className={styles.referenceMessageOther} onClick={() => navigateToTask(storeMessageForReference[message.messageDoc])}>
                                                     {/* data to hold for the reference */}
                                                     <div className={styles.referenceMessageHeader}>
                                                         {storeMessageForReference[message.messageDoc] && (
