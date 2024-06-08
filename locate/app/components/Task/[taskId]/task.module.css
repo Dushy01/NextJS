@@ -1,0 +1,30 @@
+.header
+{
+    width: 100%;
+    height: 50px;
+    padding: 0px;
+    background-color: white;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.5);
+}
+
+.backButton
+{
+    background-color: transparent;
+    border: none;
+}
+
+.backButton:focus{
+    outline: none;
+}
+
+.taskTextDescription
+{
+    font-family: 'ReadexPro';
+    font-weight: 300;
+
+    display: flex;
+    flex-direction: column;
+    
+    margin-left: 10px;
+    
+}

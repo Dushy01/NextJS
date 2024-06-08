@@ -237,15 +237,38 @@
     border: none;
     width: 100%;
     height: 10%;
-  
+    gap: 925px;
     border-radius: 0px;
     padding: 10px;
     display: flex;
-    flex-direction: row-reverse;
+    flex-direction: row;
     align-items: center;
 }
 
+.distanceButton
+{
+    width: fit-content;
+    padding: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    height: fit-content;
+    background-color: #D99BFF;
+    color: black;
+    font-family: 'ReadexPro';
+    font-size: 18px;
+    font-weight: 400;
+    text-align: center;
+    border: none;
+    border-radius: 2px;
+    display: flex;
+    flex-direction: row;
+    gap: 5px;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0px 1px 8px 0px rgb(255, 255, 255);
 
+    margin-left: 960px;
+}
 
 .ShareButton {
     width: fit-content;

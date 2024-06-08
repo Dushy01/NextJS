@@ -42,11 +42,13 @@ interface userData {
 
 interface MemberFunctionProps {
     setOpenMessage: React.Dispatch<React.SetStateAction<boolean>>;
+    setCurrentComponenet: React.Dispatch<React.SetStateAction<string>>;
+    setTaskId: React.Dispatch<React.SetStateAction<string>>;
     setMessageUid: React.Dispatch<React.SetStateAction<string>>;
     openMessage: boolean;
 }
 
-export default function Members({ setOpenMessage, setMessageUid }: MemberFunctionProps) {
+export default function Members({ setOpenMessage, setTaskId, setCurrentComponenet, setMessageUid }: MemberFunctionProps) {
     const { projectId, projectName } = useGlobalProjectIdContext();
     const { uid } = useGlobalUidContext();
     const [users, setUsers] = useState<userData[]>([]);
@@ -426,7 +428,11 @@ export default function Members({ setOpenMessage, setMessageUid }: MemberFunctio
     // function to navigate to the next Page
     const navigateToTask = (docData: string[]) => {
         const taskId = docData[1];
-        router.push(`/components/Task/${taskId}`);   
+        setTaskId(taskId);
+        setCurrentComponenet('Task'); // set the current component blank
+        
+        
+        // router.push(`/components/Task/${taskId}`);   
     }
 
 

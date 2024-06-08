@@ -12,6 +12,7 @@ import Members from "./functionComponents/Members/Members";
 import Requests from "./functionComponents/Requests/page";
 import Chat from "./functionComponents/Members/Chat"
 import TaskDetails from "./functionComponents/TaskStatus/TaskDetails";
+import Task from "./Task";
 import { useRouter } from "next/navigation";
 // import inviteViaEmail from "../../../../External/invite";
 import { FormControl, Select, MenuItem, InputLabel } from '@mui/material';
@@ -34,7 +35,7 @@ export default function Interface() {
     const [openProfile, setOpenProfile] = useState<boolean>(false);
     const [showShare, setshowShare] = useState<boolean>(false);
     const [successfulInvite, setSuccessfulInviteUser] = useState<boolean>(false);
-
+    const [taskId, setTaskId] = useState<string>('');
 
 
     const [openMessage, setOpenMessage] = useState<boolean>(false);
@@ -250,6 +251,12 @@ export default function Interface() {
     };
 
 
+    const backMemberPage = () => {
+        setCurrentComponenet('Members');
+        setTaskId('');
+    }
+
+
 
     return (
 
@@ -342,7 +349,8 @@ export default function Interface() {
                                 </div>
                             </div>) :
                         <div className={styles.headerBar}>
-                            <button className={styles.ShareButton}
+                            {currentComponent == 'Task' && <img onClick={backMemberPage} src="/Back.png"/> }
+                            <button className={` ${currentComponent != 'Task' ? styles.distanceButton : styles.ShareButton}`}
                                 onClick={changeShare}
                             >Share
                                 <img src="/Share.png" alt="share icon" />
@@ -370,10 +378,11 @@ export default function Interface() {
                                     {/* here the component should be rendered  */}
                                     {currentComponent === 'Create task' && <CreateTask />}
                                     {currentComponent === 'Task status' && <TaskStatus setOpenTask={setOpenTask} setTaskHeading={setTaskHeading} setTaskDocumentId={setTaskDocumentId} />}
-                                    {currentComponent === 'Members' && <Members setOpenMessage={setOpenMessage} openMessage={false} setMessageUid={setMessageUid} />}
+                                    {currentComponent === 'Members' && <Members setTaskId={setTaskId} setCurrentComponenet={setCurrentComponenet} setOpenMessage={setOpenMessage} openMessage={false} setMessageUid={setMessageUid} />}
                                     {/* this should be load conditionally */}
 
                                     {currentComponent === 'Requests' && <Requests />}
+                                    {currentComponent === 'Task' && <Task taskId={taskId}/>}
                                 </div>
                     }
                 </div>
