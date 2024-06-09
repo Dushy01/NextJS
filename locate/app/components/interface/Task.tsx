@@ -50,7 +50,7 @@ export default function Task({ taskId }: TaskPage) {
     }, [taskId]);
 
     return (
-        <main>
+        <main style={{padding: 25}}>
             <div className={styles.Task}>
                 <div className={styles.creatorData}>
                     <img className={styles.creatorImage} src={creatorImage} alt="Creator image" />

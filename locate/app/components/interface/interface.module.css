@@ -266,7 +266,6 @@
     justify-content: center;
     align-items: center;
     box-shadow: 0px 1px 8px 0px rgb(255, 255, 255);
-
     margin-left: 960px;
 }
 
@@ -540,4 +539,12 @@
 {
     background-color: transparent;
     border: none;
+}
+
+
+.editTaskHeading
+{
+    width: 200px;
+    margin-top: 20px;
+    font-size: 20px;
 }

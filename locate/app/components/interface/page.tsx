@@ -12,6 +12,7 @@ import Members from "./functionComponents/Members/Members";
 import Requests from "./functionComponents/Requests/page";
 import Chat from "./functionComponents/Members/Chat"
 import TaskDetails from "./functionComponents/TaskStatus/TaskDetails";
+import EditTask from "./functionComponents/TaskStatus/EditTask";
 import Task from "./Task";
 import { useRouter } from "next/navigation";
 // import inviteViaEmail from "../../../../External/invite";
@@ -252,8 +253,13 @@ export default function Interface() {
 
 
     const backMemberPage = () => {
-        setCurrentComponenet('Members');
-        setTaskId('');
+        if (currentComponent == 'Task') {
+            setCurrentComponenet('Members');
+            setTaskId('');
+        }
+        else {
+            setCurrentComponenet('Task status');
+        }
     }
 
 
@@ -349,7 +355,9 @@ export default function Interface() {
                                 </div>
                             </div>) :
                         <div className={styles.headerBar}>
-                            {currentComponent == 'Task' && <img onClick={backMemberPage} src="/Back.png"/> }
+                            {currentComponent == 'Task' || currentComponent == 'EditTask' && <img onClick={backMemberPage} src="/Back.png" />}
+                            {/* showing the task heading to reflect about which task we are talking about */}
+                            {currentComponent == 'EditTask' && <div style={{marginLeft: -900, fontSize: 18, fontFamily: 'ReadexPro', fontWeight: 200}}> <p className={styles.editTaskHeading}>{taskHeading} </p></div>}
                             <button className={` ${currentComponent != 'Task' ? styles.distanceButton : styles.ShareButton}`}
                                 onClick={changeShare}
                             >Share
@@ -370,19 +378,20 @@ export default function Interface() {
                             openTask ? (
                                 // component to show the task details 
                                 <div>
-                                    <TaskDetails taskDocumentId={taskDocumentId} />
+                                    <TaskDetails taskDocumentId={taskDocumentId} setOpenTask={setOpenTask} setCurrentComponenet={setCurrentComponenet} />
                                 </div>
                             )
                                 :
                                 <div>
                                     {/* here the component should be rendered  */}
                                     {currentComponent === 'Create task' && <CreateTask />}
-                                    {currentComponent === 'Task status' && <TaskStatus setOpenTask={setOpenTask} setTaskHeading={setTaskHeading} setTaskDocumentId={setTaskDocumentId} />}
+                                    {currentComponent === 'Task status' && <TaskStatus setCurrentComponenet={setCurrentComponenet} setOpenTask={setOpenTask} setTaskHeading={setTaskHeading} setTaskDocumentId={setTaskDocumentId} />}
                                     {currentComponent === 'Members' && <Members setTaskId={setTaskId} setCurrentComponenet={setCurrentComponenet} setOpenMessage={setOpenMessage} openMessage={false} setMessageUid={setMessageUid} />}
                                     {/* this should be load conditionally */}
 
                                     {currentComponent === 'Requests' && <Requests />}
-                                    {currentComponent === 'Task' && <Task taskId={taskId}/>}
+                                    {currentComponent === 'Task' && <Task taskId={taskId} />}
+                                    {currentComponent === 'EditTask' && <EditTask taskDocumentId={taskDocumentId} />}
                                 </div>
                     }
                 </div>
@@ -429,7 +438,7 @@ export default function Interface() {
                         </div>
 
 
-                        <button className={styles.cancelButtons} onClick={() => setOpenProfile(false)}><img src="/Cross.png"/></button>
+                        <button className={styles.cancelButtons} onClick={() => setOpenProfile(false)}><img src="/Cross.png" /></button>
                     </div>
 
                     {/* content for the profile component */}
@@ -451,7 +460,7 @@ export default function Interface() {
             }
 
             {/* show the Task list profile */}
-            {showTaskList &&  <TaskList setShowTaskList={setShowTaskList}/>}
+            {showTaskList && <TaskList setShowTaskList={setShowTaskList} />}
 
             {successfulInvite &&
                 <div className={`${successfulInvite} ? ${styles.successfullyInvited} : ' '`}>

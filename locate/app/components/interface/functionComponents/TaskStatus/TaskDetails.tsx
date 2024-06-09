@@ -1,6 +1,8 @@
 'use client'
 interface taskDetailsProps {
     taskDocumentId: string;
+    setOpenTask: React.Dispatch<SetStateAction<boolean>>;
+    setCurrentComponenet: React.Dispatch<SetStateAction<string>>;
 }
 
 interface assignedList {
@@ -9,26 +11,27 @@ interface assignedList {
     Status: string;
 }
 
-
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { useGlobalUidContext } from '@/app/context/uid';
 import { useGlobalProjectIdContext } from '@/app/context/projectId';
 import styles from './taskdetails.module.css'
 import { firestore } from "@/app/firebase";
 import { collection, doc, Firestore, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore";
-import { useState, useEffect } from "react";
-export default function TaskDetails({ taskDocumentId }: taskDetailsProps) {
+import { useState, useEffect, SetStateAction } from "react";
+export default function TaskDetails({ taskDocumentId, setOpenTask, setCurrentComponenet }: taskDetailsProps) {
     // const [assigneMap, setAssigneMap] = useState({});
     const [assigneeList, setAssigneeList] = useState<assignedList[]>([]);
     const [taskId, setTaskId] = useState('');
     const [taskDescription, setTaskDescription] = useState('');
     const [creator, setCreator] = useState(false);
     const [creatorIamge, setCreatorImage] = useState('');
+
     // creating a array to hold the user object which would include the ImageUrl, Uid, and status level of the user 
     const [asssignies, setAssignies] = useState<string[]>([]);
     const { uid } = useGlobalUidContext();
     const {  projectName} = useGlobalProjectIdContext();
-
+    const router = useRouter();
 
     const getImageUrl = async (userUid: string) => {
         const q = query(collection(firestore, 'Users'), where('Uid', "==", userUid))
@@ -57,9 +60,11 @@ export default function TaskDetails({ taskDocumentId }: taskDetailsProps) {
             if (document.exists()) {
                 const documentAssigneMap = document.data().Assignies || {};
                 const documentDescription = document.data().Description || '';
-             
+              
                 const createdBy = document.data().CreatedBy;
-                setTaskId(createdBy);
+                const taskID = document.data().TaskID;
+                setTaskId(taskID);
+                console.log('task id is', taskId);
                 getCreatorImage(createdBy);
                 setTaskDescription(documentDescription);
                 if (createdBy === uid) {
@@ -111,6 +116,11 @@ export default function TaskDetails({ taskDocumentId }: taskDetailsProps) {
         console.log(response.status);   
     }
 
+    const editTask = () => {
+        setOpenTask(false);
+        setCurrentComponenet('EditTask');
+    }
+
 
     return (
         <main className={styles.mainBody}>
@@ -119,17 +129,7 @@ export default function TaskDetails({ taskDocumentId }: taskDetailsProps) {
                 <p className={styles.taskDescription}>{taskDescription}</p>
             </div>
             <div className={styles.assigneeMap}>
-                {/* here we would show user the map for getting the data  */}
-                {/* {Object.entries(assigneMap).map(([imageUrl, buttonText]) => (
-                    <div className={styles.assigneeMapRow}>
-                        <img src={imageUrl} alt="User image" className={styles.assigneeImage} />
-                        <button
-                        
-                         className={styles.assigneeButton}>
-                            {buttonText as string}
-                        </button>
-                    </div>
-                ))} */}
+                
 
                 {assigneeList.map(({ ImageUrl, Status, Uid }) => (
                     <div className={styles.assigneeMapRow} key={Uid}>
@@ -142,7 +142,7 @@ export default function TaskDetails({ taskDocumentId }: taskDetailsProps) {
             </div>
             {creator &&
                 <div className={styles.taskButtons}>
-                    <button className={styles.editButton}>Edit</button>
+                    <button onClick={editTask} className={styles.editButton}>Edit</button>
                     <button onClick={updateFinishStatus} className={styles.finishButton}>Finish</button>
                 </div>
             }

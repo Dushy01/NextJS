@@ -34,6 +34,7 @@ interface TaskStatusProps {
     setOpenTask: React.Dispatch<React.SetStateAction<boolean>>;
     setTaskHeading: React.Dispatch<React.SetStateAction<string>>;
     setTaskDocumentId: React.Dispatch<React.SetStateAction<string>>;
+    setCurrentComponenet: React.Dispatch<React.SetStateAction<string>>;
 }
 
 export default function TaskStatus({ setOpenTask, setTaskHeading, setTaskDocumentId }: TaskStatusProps) {
@@ -112,6 +113,7 @@ export default function TaskStatus({ setOpenTask, setTaskHeading, setTaskDocumen
         setOpenTask(true);
         setTaskHeading(taskHeading);
         setTaskDocumentId(documentId);
+        
     }
 
 
