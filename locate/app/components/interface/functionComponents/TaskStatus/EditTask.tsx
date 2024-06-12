@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './edittask.module.css';
-import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
-import { firestore } from '@/app/firebase';
-
+import { collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import { firestore, storage } from '@/app/firebase';
+import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { useGlobalProjectIdContext } from '@/app/context/projectId';
 interface EditTask {
     taskDocumentId: string;
 }
@@ -12,21 +13,50 @@ export default function EditTask({ taskDocumentId }: EditTask) {
     const [taskDescription, setTaskDescription] = useState<string>('');
     const [taskDeadline, setTaskDeadline] = useState('');
     const [assginieDocData, setAssignieDocData] = useState<{ [key: string]: string[] }>({});
+    const [optionAssginieDocData, setOptionAssignieDocData] = useState<{ [key: string]: string[] }>({});
     const [taskFileData, setTaskFileData] = useState<{ [key: string]: string }>({});
     const [assignieImages, setAssignieImage] = useState<string[]>([]);
     const [openFile, setOpenFile] = useState(false);
     const [openAssignie, setOpenAssignie] = useState(false);
+    const { projectId } = useGlobalProjectIdContext();
+
+    const getUserData = async (userId: string): Promise<string[] | undefined> => {
+        const q = query(collection(firestore, 'Users'), where('Uid', "==", userId));
+        const docSnapshot = await getDocs(q);
+        if (!docSnapshot.empty) {
+            const docData = docSnapshot.docs[0].data();
+            return [docData['Name'], docData['ImageUrl']];
+        }
+        return undefined; // Explicitly return undefined if no document is found
+    };
+
+    const getAssignees = async () => {
+        const docRef = doc(firestore, 'Tasks', taskDocumentId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const docData = docSnap.data();
+            
+            // now setting up the Assignies data
+            const assignie_data = docData.Assignies;
+            if (typeof assignie_data === 'object' && assignie_data !== null) {
+                const updatedAssignieDocData: { [key: string]: string[] } = {};
+                for (const [key, value] of Object.entries(assignie_data)) {
+                    const userData = await getUserData(key);
+                    if (userData) {
+                        // Add the key and userData to updatedAssignieDocData
+                        updatedAssignieDocData[key] = userData;
+                    }
+                }
+                return updatedAssignieDocData;
+            }
+            
+        }
+    };
+
 
     useEffect(() => {
-        const getUserData = async (userId: string): Promise<string[] | undefined> => {
-            const q = query(collection(firestore, 'Users'), where('Uid', "==", userId));
-            const docSnapshot = await getDocs(q);
-            if (!docSnapshot.empty) {
-                const docData = docSnapshot.docs[0].data();
-                return [docData['Name'], docData['ImageUrl']];
-            }
-            return undefined; // Explicitly return undefined if no document is found
-        };
+
 
         // get the data related to the task using its document id
         const getTaskData = async () => {
@@ -65,6 +95,118 @@ export default function EditTask({ taskDocumentId }: EditTask) {
 
         getTaskData();
     }, [taskDocumentId]);
+
+
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleButtonClick = () => {
+        // Trigger the hidden file input click event
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    const handleFileChange = (event: any) => {
+        const files: any = Array.from(event.target.files);
+        setSelectedFiles(files);
+    };
+
+    useEffect(() => {
+        const uploadFiles = async () => {
+            const newFileURLs: { [key: string]: string } = {};
+
+            for (const file of selectedFiles) {
+                const storageRef = ref(storage, `uploads/${file.name}`);
+                await uploadBytes(storageRef, file);
+                const downloadURL = await getDownloadURL(storageRef);
+                newFileURLs[file.name] = downloadURL;
+            }
+
+            setTaskFileData(prevTaskFileData => {
+                const updatedData = { ...prevTaskFileData, ...newFileURLs };
+
+                // Update Firestore document with the new data
+                const docRef = doc(firestore, 'Tasks', taskDocumentId);
+                updateDoc(docRef, { Files: updatedData });
+
+                return updatedData;
+            });
+
+            // empty the selectedFiles with the blank data
+            setSelectedFiles([]);
+        };
+
+        if (selectedFiles.length > 0) {
+            uploadFiles();
+        }
+    }, [selectedFiles, storage]);
+
+
+    const handleDeleteFile = async (fileName: string) => {
+        const storageRef = ref(storage, `uploads/${fileName}`);
+        await deleteObject(storageRef);
+
+        setTaskFileData(prevTaskFileData => {
+            const updatedData = { ...prevTaskFileData };
+            delete updatedData[fileName];
+
+            // Update Firestore document with the new data
+            const docRef = doc(firestore, 'Tasks', taskDocumentId);
+            updateDoc(docRef, { Files: updatedData });
+
+            return updatedData;
+        });
+    };
+
+    const [openOptionAssignie, setOpenOptionAssignie] = useState(false);
+
+    const deleteAssignee = async (assigneeId: string) => {
+
+    }
+
+
+    const addAssignee = async (assignee_id: string) => {
+        
+    }
+
+    // function to get get the member data 
+    useEffect(() => {
+        const getMembers = async () => {
+            const docRef = doc(firestore, 'Projects', projectId);
+            const docData = await getDoc(docRef);
+
+            if (docData.exists()) {
+                const assignie_data = docData.data().members;
+
+                const updatedAssignieDocData: { [key: string]: string[] } = {};
+                for (const member_id of assignie_data) {
+                    const userData = await getUserData(member_id);
+                    if (userData) {
+                        // Add the key and userData to updatedAssignieDocData
+                        updatedAssignieDocData[member_id] = userData;
+                    }
+                }
+                const assignee_data = await getAssignees() || {};
+                console.log(assignee_data);
+                console.log(updatedAssignieDocData);
+                // filter the data from the assignies set data and then set
+                const filteredAssignieDocData: { [key: string]: string[] } = {};
+                for (const [key, value] of Object.entries(updatedAssignieDocData)) {
+                    if (!(key in assignee_data)) {
+                        filteredAssignieDocData[key] = value;
+                    }
+                }
+                
+                setOptionAssignieDocData(filteredAssignieDocData);
+
+            }
+        }
+
+        getMembers();
+    }, [projectId]);
+
+    
 
     return (
         <main>
@@ -105,7 +247,7 @@ export default function EditTask({ taskDocumentId }: EditTask) {
                             <img className={styles.assignieImage} src={imageUrl} alt="Image Url" />
                         ))}
                     </div>
-                    <p className={styles.assignieText}>Assignies</p>
+                    <p className={styles.assignieText}>Assignees</p>
                 </div>
                 <button className={styles.updateTaskButton}>Update Task</button>
             </div>
@@ -122,9 +264,15 @@ export default function EditTask({ taskDocumentId }: EditTask) {
                         {Object.entries(taskFileData).map(([key, value]) => (
                             <div className={styles.fileRow}>
                                 <p className={styles.fileName}>{key}</p>
-                                <button className={styles.fileDeleteButton}><img src='/deleteIcon.png' /></button>
+                                <button onClick={() => handleDeleteFile(key)} className={styles.fileDeleteButton}><img src='/deleteIcon.png' /></button>
                             </div>
                         ))}
+                        <input type="file"
+                            style={{ display: 'none' }}
+                            ref={fileInputRef}
+                            onChange={handleFileChange}
+                            multiple />
+                        <button onClick={handleButtonClick} className={styles.addFileButton}>Add files</button>
                     </div>
                 </div>
             }
@@ -133,18 +281,43 @@ export default function EditTask({ taskDocumentId }: EditTask) {
             {openAssignie &&
                 <div className={styles.fileDialog}>
                     <div className={styles.fileDialogHeader}>
-                        <p className={styles.fileDialogHeaderHeading}>Task Files</p>
-                        <button className={styles.fileDialogCloseButton} onClick={() => setOpenFile(false)}><img src='/Cross.png' /></button>
+                        <p className={styles.fileDialogHeaderHeading}>Assignees</p>
+                        <button className={styles.fileDialogCloseButton} onClick={() => setOpenAssignie(false)}><img src='/Cross.png' /></button>
                     </div>
                     <div className={styles.fileColumn}>
+
                         {Object.entries(assginieDocData).map(([key, value]) => (
                             <div className={styles.fileRow}>
                                 <div className={styles.assignieData}>
-                                    
+
                                     <img className={styles.assignieImage} src={value[1]} />
                                     <p className={styles.assignieName}>{value[0]}</p>
                                 </div>
-                                <button className={styles.fileDeleteButton}><img src='/deleteIcon.png' /></button>
+                                <button onClick={() => deleteAssignee(key)} className={styles.fileDeleteButton}><img src='/deleteIcon.png' /></button>
+                            </div>
+                        ))}
+                        <button onClick={() => setOpenOptionAssignie(true)} className={styles.addFileButton}>Add Assignies</button>
+                    </div>
+                </div>
+            }
+
+            {
+                openOptionAssignie &&
+                <div className={styles.fileDialog}>
+                    <div className={styles.fileDialogHeader}>
+                        <p className={styles.fileDialogHeaderHeading}>Project Members</p>
+                        <button className={styles.fileDialogCloseButton} onClick={() => setOpenOptionAssignie(false)}><img src='/Cross.png' /></button>
+                    </div>
+                    <div className={styles.fileColumn}>
+
+                        {Object.entries(optionAssginieDocData).map(([key, value]) => (
+                            <div className={styles.fileRow}>
+                                <div className={styles.assignieData}>
+
+                                    <img className={styles.assignieImage} src={value[1]} />
+                                    <p className={styles.assignieName}>{value[0]}</p>
+                                </div>
+                                <button onClick={() => addAssignee(key)} className={styles.fileDeleteButton}><img src='/AddCircle.png' /></button>
                             </div>
                         ))}
                     </div>

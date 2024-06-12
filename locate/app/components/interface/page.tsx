@@ -368,7 +368,7 @@ export default function Interface() {
                 }
 
 
-                <div style={{ padding: 10 }}>
+                <div style={{ padding: 10 }} className={styles.loadComponent}>
                     {
                         openMessage ? (
                             <div>

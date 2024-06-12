@@ -228,7 +228,7 @@
     gap: 250px;
 }
 
-.fileColumn
+/* .fileColumn
 {
     height: 200px;
     max-height: 200px;
@@ -241,7 +241,22 @@
 .fileColumn::-webkit-scrollbar
 {
     display: none;
+} */
+
+.fileColumn {
+    height: 200px;
+    max-height: 200px;
+    overflow-y: auto;
+    scroll-behavior: smooth; /* Optional: smooth scrolling behavior */
+    display: flex;
+    flex-direction: column;
 }
+
+.fileColumn::-webkit-scrollbar {
+    width: 0;  /* Remove scrollbar space */
+    background: transparent;  /* Optional: just make scrollbar invisible */
+}
+
 
 .fileName
 {
@@ -285,4 +300,25 @@
     height: 40px;
     border: none;
     border-radius: 50%;
+}
+
+.addFileButton
+{
+    background-color: black;
+    border: none;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.5);
+    height: 40px;
+    transition: 0.3s;
+}
+
+.addFileButton:focus
+{
+    border: none;
+    outline: none;
+}
+
+.addFileButton:hover
+{
+    color: white;
 }
