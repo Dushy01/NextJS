@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import styles from './edittask.module.css';
-import { collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
+import { arrayRemove, arrayUnion, collection, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore';
 import { firestore, storage } from '@/app/firebase';
 import { deleteObject, getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { useGlobalProjectIdContext } from '@/app/context/projectId';
@@ -36,7 +36,7 @@ export default function EditTask({ taskDocumentId }: EditTask) {
 
         if (docSnap.exists()) {
             const docData = docSnap.data();
-            
+
             // now setting up the Assignies data
             const assignie_data = docData.Assignies;
             if (typeof assignie_data === 'object' && assignie_data !== null) {
@@ -50,7 +50,7 @@ export default function EditTask({ taskDocumentId }: EditTask) {
                 }
                 return updatedAssignieDocData;
             }
-            
+
         }
     };
 
@@ -162,13 +162,83 @@ export default function EditTask({ taskDocumentId }: EditTask) {
     const [openOptionAssignie, setOpenOptionAssignie] = useState(false);
 
     const deleteAssignee = async (assigneeId: string) => {
+        // Remove the key-value pair from the assginieDocData state
+        setAssignieDocData(prevState => {
+            const updatedState = { ...prevState };
+            delete updatedState[assigneeId];
+            return updatedState;
+        });
+    
+        // Use getUserData to get the assignee's image URL
+        const key_value_data = await getUserData(assigneeId);
+        if (!key_value_data) {
+            console.error('User data not found');
+            return;
+        }
+    
+        const assigneeUrl = key_value_data[1];
+    
+        try {
+            const docRef = doc(firestore, 'Tasks', taskDocumentId);
+            const docSnapshot = await getDoc(docRef);
+    
+            if (docSnapshot.exists()) {
+                const docData = docSnapshot.data();
+                const assigneeImages = docData.AssignieesImages || [];
+                const assignees = docData.Assignies || {};
+    
+                // Create a new array without the removed URL
+                const updatedAssigneeImages = assigneeImages.filter((url: string) => url !== assigneeUrl);
+    
+                // Remove the assignee ID from the map
+                const { [assigneeId]: removed, ...updatedAssignees } = assignees;
+    
+                // Update the Firestore document
+                await updateDoc(docRef, {
+                    AssignieesImages: updatedAssigneeImages,
+                    Assignies: updatedAssignees
+                });
+    
+                console.log('Assignee deleted successfully');
+            } else {
+                console.error('No such document!');
+            }
+        } catch (error) {
+            console.error('Error updating document:', error);
+        }
+    };
 
-    }
 
+    const addAssignee = async (key: string) => {
+        setAssignieDocData((prevData) => ({
+            ...prevData,
+            [key]: optionAssginieDocData[key],
+        }));
 
-    const addAssignee = async (assignee_id: string) => {
-        
-    }
+        setOptionAssignieDocData((prevData) => {
+            const newData = { ...prevData };
+            delete newData[key];
+            return newData;
+        });
+
+        // add some data in the 
+        const key_value_data = await getUserData(key) || [];
+        const assigneeUrl = key_value_data[1];
+        const docRef = doc(firestore, 'Tasks', taskDocumentId);
+        const docSnapshot = await getDoc(docRef);
+        if (docSnapshot.exists()) {
+            const docData = docSnapshot.data();
+            const assigneeImages = docData.AssignieesImages || [];
+            const assignees = docData.Assignies || {};
+
+            // Update the AssignieesImages array and Assignies map
+            await updateDoc(docRef, {
+                assigneeImages: arrayUnion(assigneeUrl),
+                [`assignees.${key}`]: 'Assigned'
+            });
+
+        }
+    };
 
     // function to get get the member data 
     useEffect(() => {
@@ -197,7 +267,7 @@ export default function EditTask({ taskDocumentId }: EditTask) {
                         filteredAssignieDocData[key] = value;
                     }
                 }
-                
+
                 setOptionAssignieDocData(filteredAssignieDocData);
 
             }
@@ -206,7 +276,7 @@ export default function EditTask({ taskDocumentId }: EditTask) {
         getMembers();
     }, [projectId]);
 
-    
+
 
     return (
         <main>
